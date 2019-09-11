@@ -1,0 +1,38 @@
+{
+  "name": "react-virtualization",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlekseyKasteuk/react-virtualization.git"
+  },
+  "keywords": [
+    "react",
+    "virtualization"
+  ],
+  "author": "Aleksey Kasteuk",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlekseyKasteuk/react-virtualization/issues"
+  },
+  "homepage": "https://github.com/AlekseyKasteuk/react-virtualization#readme",
+  "dependencies": {
+    "@types/lodash": "^4.14.138",
+    "lodash": "^4.17.15",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.2",
+    "@types/react-dom": "^16.9.0",
+    "source-map-loader": "^0.2.4",
+    "ts-loader": "^6.1.0",
+    "typescript": "^3.6.3",
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.8"
+  }
+}
