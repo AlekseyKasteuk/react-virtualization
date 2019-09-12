@@ -1,4 +1,6 @@
+export { default as AutoSizer } from './AutoSizer'
 export { default as Grid } from './Grid'
 export { default as List } from './List'
 export { default as HorizontalList } from './HorizontalList'
 export { default as SizeAndPositionManager } from './SizeAndPositionManager'
+export { default as ScrollWrapper } from './ScrollWrapper'
