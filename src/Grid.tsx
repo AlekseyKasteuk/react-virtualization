@@ -1,12 +1,13 @@
 import * as React from 'react'
 
-import Background from './Background'
-import ScrollWrapper, { ScrollWrapperProps } from './ScrollWrapper'
-import SizeAndPositionManager from './SizeAndPositionManager'
-import RenderRangersManager, { Range } from './RenderRangersManager'
-
+import { BackgroundType } from './enums'
 import { GridProps } from './types'
 import { permutations, range } from './utils'
+
+import Background from './Background'
+import ScrollWrapper from './ScrollWrapper'
+import SizeAndPositionManager from './SizeAndPositionManager'
+import RenderRangersManager, { Range } from './RenderRangersManager'
 
 interface GridState {
   prevProps: Partial<GridProps>,
@@ -205,8 +206,9 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
     }
   }
 
-  getStyle = (rowIndex: number, columnIndex: number): { position: string, top: string, left: string, width: string, height: string } => ({
+  getStyle = (rowIndex: number, columnIndex: number): React.CSSProperties => ({
     position: 'absolute',
+    boxSizing: 'border-box',
     top: `${this.state.rowManager.getPixelByIndex(rowIndex)}px`,
     left: `${this.state.columnManager.getPixelByIndex(columnIndex)}px`,
     height: `${this.state.rowManager.getSize(rowIndex)}px`,
@@ -261,15 +263,21 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
         fullWidth={columnManager.fullSize}
       >
         {
-          (enableBackgroundVerticalLines || enableBackgroundHorizontalLines) &&
+          enableBackgroundVerticalLines &&
           (
             <Background
-              enableBackgroundVerticalLines={enableBackgroundVerticalLines}
-              enableBackgroundHorizontalLines={enableBackgroundHorizontalLines}
-              rowManager={rowManager}
-              columnManager={columnManager}
-              rowsRange={rowsRange}
-              columnsRange={columnsRange}
+              manager={columnManager}
+              range={columnsRange}
+              type={BackgroundType.Vertical}
+            />
+          )
+        }
+        {
+          enableBackgroundHorizontalLines && (
+            <Background
+              manager={rowManager}
+              range={rowsRange}
+              type={BackgroundType.Horizontal}
             />
           )
         }

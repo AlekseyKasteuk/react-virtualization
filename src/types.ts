@@ -20,7 +20,7 @@ export interface Props {
       columnIndex: number,
       rowManager: SizeAndPositionManager,
       columnManager: SizeAndPositionManager,
-      style: { position: string, top: string, left: string, width: string, height: string }
+      style: React.CSSProperties,
     }
   ) => React.ReactNode
 
