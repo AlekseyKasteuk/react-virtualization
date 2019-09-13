@@ -1,9 +1,9 @@
 module.exports = {
-  entry: './test/App.tsx',
+  entry: './demos/App.tsx',
   output: {
-    filename: './test/App.js',
+    filename: './demos/App.js',
   },
-  mode: "production",
+  mode: "development",
   devtool: "source-map",
   resolve: {
     extensions: [".ts", ".tsx"]

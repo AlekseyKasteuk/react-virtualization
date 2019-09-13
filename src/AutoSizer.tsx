@@ -1,19 +1,19 @@
 import * as React from 'react'
 
-interface AutoSizerProps extends React.HTMLAttributes<HTMLDivElement> {
+interface IAutoSizerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.FunctionComponent<{ width: number, height: number }>
 }
 
-interface AutoSizerState {
+interface IAutoSizerState {
   width: number,
   height: number,
 }
 
-export default class AutoSizer extends React.PureComponent<AutoSizerProps, AutoSizerState> {
+export default class AutoSizer extends React.PureComponent<IAutoSizerProps, IAutoSizerState> {
   ref: React.RefObject<HTMLDivElement> = React.createRef()
   timeoutId: number = null
 
-  constructor (props: AutoSizerProps) {
+  constructor (props: IAutoSizerProps) {
     super(props)
     this.state = { width: 0, height: 0 }
   }

@@ -1,16 +1,16 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
-import { AutoSizer, Grid, SizeAndPositionManager } from '../src'
+import { AutoSizer, Grid, SizeAndPositionManager, HorizontalList, List } from '../src'
 
-interface SelectedCellParams { rowIndex: number, columnIndex: number }
-interface SelectedCellProps {
-  selectedCell: SelectedCellParams,
+interface ISelectedCellParams { rowIndex: number, columnIndex: number }
+interface ISelectedCellProps {
+  selectedCell: ISelectedCellParams,
   getStyle: GetStyleType,
 }
 type GetStyleType = (rowIndex: number, columnIndex: number) => React.CSSProperties
 
-class SelectedCell extends React.PureComponent<SelectedCellProps> {
+class SelectedCell extends React.PureComponent<ISelectedCellProps> {
   ref: React.RefObject<HTMLDivElement> = React.createRef()
   
   componentDidMount() {
@@ -32,10 +32,11 @@ class SelectedCell extends React.PureComponent<SelectedCellProps> {
     )
   }
 }
-class TestComponent extends React.PureComponent<{}, { selectedCell?: SelectedCellParams }> {
-  state: { selectedCell?: SelectedCellParams, rowManager: SizeAndPositionManager, columnManager: SizeAndPositionManager } = {
+
+class TestComponent extends React.PureComponent<{}, { selectedCell?: ISelectedCellParams }> {
+  state: { selectedCell?: ISelectedCellParams, rowManager: SizeAndPositionManager, columnManager: SizeAndPositionManager } = {
     selectedCell: null,
-    rowManager: new SizeAndPositionManager({ count: 100, size: 40 }),
+    rowManager: new SizeAndPositionManager({ count: 100, size: (index) => index % 2 === 0 ? 40 : 50 }),
     columnManager: new SizeAndPositionManager({ count: 100, size: 100 }),
   }
 
@@ -94,6 +95,7 @@ class TestComponent extends React.PureComponent<{}, { selectedCell?: SelectedCel
       >
         {
           ({ width, height }) => (
+            
             <Grid
               width={width}
               height={height}

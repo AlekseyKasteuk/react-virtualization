@@ -1,35 +1,39 @@
 import * as React from 'react'
 
-import { BackgroundType } from './enums'
-import { range } from './utils'
+import range from './utils/range'
 
-import { Range } from './RenderRangersManager'
-import SizeAndPositionManager from './SizeAndPositionManager'
+import { Range } from './managers/RenderRangersManager'
+import SizeAndPositionManager from './managers/SizeAndPositionManager'
 
-export interface BackgroundProps {
+export enum BackgroundTypeEnum {
+  Vertical = 'vertical',
+  Horizontal = 'horizontal',
+}
+
+interface IBackgroundProps {
   manager: SizeAndPositionManager,
   range: Range,
-  type: BackgroundType,
+  type: BackgroundTypeEnum,
   color?: string,
 }
 
-export default class Background extends React.PureComponent<BackgroundProps> {
+export default class Background extends React.PureComponent<IBackgroundProps> {
   canvas = document.createElement('canvas')
 
-  constructor (props: BackgroundProps) {
+  constructor (props: IBackgroundProps) {
     super(props)
-    if (props.type === BackgroundType.Horizontal) {
+    if (props.type === BackgroundTypeEnum.Horizontal) {
       this.canvas.width = 1
     } else {
       this.canvas.height = 1
     }
-    this.canvas.height = props.type === BackgroundType.Horizontal ? props.manager.fullSize : 1
-    this.canvas.width = props.type === BackgroundType.Horizontal ? 1 : props.manager.fullSize
+    this.canvas.height = props.type === BackgroundTypeEnum.Horizontal ? props.manager.fullSize : 1
+    this.canvas.width = props.type === BackgroundTypeEnum.Horizontal ? 1 : props.manager.fullSize
   }
 
   getBackground = (): string => {
     const { type, manager, range: { start, end }, color = '#e7e7e7' } = this.props
-    const isHirizontal = type === BackgroundType.Horizontal
+    const isHirizontal = type === BackgroundTypeEnum.Horizontal
 
     this.canvas[isHirizontal ? 'height' : 'width'] = manager.fullSize
     const context = this.canvas.getContext('2d')

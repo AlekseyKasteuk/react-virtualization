@@ -1,26 +1,13 @@
 import * as React from 'react'
 
-import SizeAndPositionManager from './SizeAndPositionManager'
+import IScrollWrapperProps from './interfaces/IScrollWrapperProps'
 
-export interface ScrollWrapperProps {
-  width: number,
-  height: number,
-  fullWidth: number,
-  fullHeight: number,
-  scrollTop: number,
-  scrollLeft: number,
-  onScroll: (event: React.UIEvent) => void,
-  rowManager: SizeAndPositionManager,
-  columnManager: SizeAndPositionManager,
-  children: React.ReactNode,
-}
-
-export default class ScrollWrapper extends React.PureComponent<ScrollWrapperProps> {
+export default class ScrollWrapper extends React.PureComponent<IScrollWrapperProps> {
   ref: React.RefObject<HTMLDivElement> = React.createRef()
 
   componentDidMount () { this.setPosition() }
 
-  componentDidUpdate (prevProps: ScrollWrapperProps) {
+  componentDidUpdate (prevProps: IScrollWrapperProps) {
     this.setPosition()
   }
 

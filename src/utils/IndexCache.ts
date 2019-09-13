@@ -1,20 +1,20 @@
 interface TreeNodeParams {
   start: number
   end: number
-  value: number
+  index: number
 }
 
 export class TreeNode {
   private start: number
   private end: number
-  public value: number
+  public index: number
   private left: TreeNode
   private right: TreeNode
 
-  constructor ({ start, end, value }: TreeNodeParams) {
+  constructor ({ start, end, index }: TreeNodeParams) {
     this.start = start
     this.end = end
-    this.value = value
+    this.index = index
   }
 
   get leftHeight () : number {
@@ -49,20 +49,20 @@ export class TreeNode {
   }
 
   add(params: TreeNodeParams) {
-    const { start, end, value } = params
-    if (this.start > end) {
+    const { start, end, index } = params
+    if (this.start >= end) {
       if (this.left) {
         this.left.add(params)
       } else {
         this.left = new TreeNode(params)
       }
-    } else if (this.end < start) {
+    } else if (this.end <= start) {
       if (this.right) {
         this.right.add(params)
       } else {
         this.right = new TreeNode(params)
       }
-    } else if (this.start !== start || this.end !== end || this.value !== value) {
+    } else if (this.start !== start || this.end !== end || this.index !== index) {
       throw new Error('Collision')
     }
     return this.balanceTree()

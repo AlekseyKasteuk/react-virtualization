@@ -1,9 +1,9 @@
 import Grid from './Grid'
 
-import { HorizontalListProps } from './types'
+import IHorizontalListProps from "./interfaces/IHorizontalListProps"
 
 export default class HorizontalList extends Grid {
-  constructor (props: HorizontalListProps) {
+  constructor (props: IHorizontalListProps) {
     super({
       ...props,
       enableBackgroundHorizontalLines: false,

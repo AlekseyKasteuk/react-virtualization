@@ -1,4 +1,4 @@
-export const permutations = (arr: any[], ...arrs: any[][]): any[] => {
+const permutations = (arr: any[], ...arrs: any[][]): any[] => {
   if (!arrs.length) {
     return arr.map(item => ([item]))
   }
@@ -13,10 +13,4 @@ export const permutations = (arr: any[], ...arrs: any[][]): any[] => {
   }, [])
 }
 
-export const range = (start: number, end: number): number[] => {
-  const result = []
-  for (let i: number = start; i <= end; i++) {
-    result.push(i)
-  }
-  return result
-}
+export default permutations

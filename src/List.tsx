@@ -1,9 +1,9 @@
 import Grid from './Grid'
 
-import { VerticalListProps } from './types'
+import IVerticalListProps from "./interfaces/IVerticalListProps"
 
 export default class List extends Grid {
-  constructor (props: VerticalListProps) {
+  constructor (props: IVerticalListProps) {
     super({
       ...props,
       enableBackgroundVerticalLines: false,

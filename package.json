@@ -15,7 +15,7 @@
     "virtualization"
   ],
   "author": "Aleksey Kasteuk",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/AlekseyKasteuk/react-virtualization/issues"
   },

@@ -1,16 +1,26 @@
 import * as React from 'react'
 
-import { BackgroundType } from './enums'
-import { GridProps } from './types'
-import { permutations, range } from './utils'
+import IGridProps from "./interfaces/IGridProps"
+import permutations from './utils/permutations'
+import range from './utils/range'
 
-import Background from './Background'
+import Background, { BackgroundTypeEnum } from './Background'
 import ScrollWrapper from './ScrollWrapper'
-import SizeAndPositionManager from './SizeAndPositionManager'
-import RenderRangersManager, { Range } from './RenderRangersManager'
+import SizeAndPositionManager from './managers/SizeAndPositionManager'
+import RenderRangersManager, { Range } from './managers/RenderRangersManager'
 
-interface GridState {
-  prevProps: Partial<GridProps>,
+
+type PrevPropsType = Pick<
+  IGridProps,
+  'width' | 'height' |
+  'rowCount' | 'rowHeight' | 'rowManager' |
+  'columnCount' | 'columnWidth' | 'columnManager' |
+  'overscanCount' | 'overscanRowCount' | 'overscanColumnCount' |
+  'scrollToRow' | 'scrollToColumn' |
+  'scrollLeft' | 'scrollTop'
+>
+interface IGridState {
+  prevProps: PrevPropsType,
   renderRangesManager: RenderRangersManager,
   rowManager: SizeAndPositionManager,
   columnManager: SizeAndPositionManager,
@@ -22,49 +32,11 @@ interface GridState {
   columnsRange: Range,
 }
 
-const getPrevProps = ({
-  width,
-  height,
-
-  rowCount,
-  rowHeight,
-  rowManager,
-
-  columnCount,
-  columnWidth,
-  columnManager,
-
-  overscanCount,
-  overscanRowCount,
-  overscanColumnCount,
-
-  scrollToRow,
-  scrollToColumn,
-  scrollLeft,
-  scrollTop,
-}: GridProps): Partial<GridProps> => ({
-  width,
-  height,
-  rowCount,
-  rowHeight,
-  rowManager,
-  columnCount,
-  columnWidth,
-  columnManager,
-  overscanCount,
-  overscanRowCount,
-  overscanColumnCount,
-  scrollToRow,
-  scrollToColumn,
-  scrollLeft,
-  scrollTop,
-})
-
-function getChangedProps(props: GridProps, prevProps: Partial<GridProps>): boolean {
-  return Object.keys(prevProps).some((key: keyof GridProps) => props[key] !== prevProps[key])
+function getChangedProps(props: IGridProps, prevProps: PrevPropsType): boolean {
+  return Object.keys(prevProps).some((key: keyof PrevPropsType) => props[key] !== prevProps[key])
 }
 
-const scrollFromProps = (props: GridProps, state: GridState) => {
+const scrollFromProps = (props: IGridProps, state: IGridState) => {
   const { onScroll } = props
   const { scrollLeft, scrollTop } = state
   if (onScroll && (props.scrollLeft !== scrollLeft || props.scrollTop !== scrollTop)) {
@@ -72,15 +44,15 @@ const scrollFromProps = (props: GridProps, state: GridState) => {
   }
 }
 
-export default class Grid extends React.PureComponent<GridProps, GridState> {
-  static getDerivedStateFromProps (props: GridProps, state: GridState): Partial<GridState> {
+export default class Grid extends React.PureComponent<IGridProps, IGridState> {
+  static getDerivedStateFromProps (props: IGridProps, state: IGridState): Partial<IGridState> {
     const hasChanges: boolean = getChangedProps(props, state.prevProps)
 
     if (!hasChanges) {
       return null
     }
 
-    const changedState: Partial<GridState> = { prevProps: getPrevProps(props) }
+    const changedState: Partial<IGridState> = { prevProps: props }
 
     let rowManager: SizeAndPositionManager = props.rowManager
     if (!rowManager && (props.rowHeight !== state.prevProps.rowHeight || props.rowCount !== state.prevProps.rowCount)) {
@@ -157,7 +129,7 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
     return changedState
   }
 
-  constructor (props : GridProps) {
+  constructor (props : IGridProps) {
     super(props)
     const {
       width,
@@ -187,7 +159,7 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
     }
     const renderRangesManager = new RenderRangersManager()
     this.state = {
-      prevProps: getPrevProps(props),
+      prevProps: props,
       renderRangesManager,
       rowManager,
       columnManager,
@@ -204,7 +176,7 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
     scrollFromProps(this.props, this.state)
   }
 
-  componentDidUpdate (nextProps: GridProps, nextState: GridState) {
+  componentDidUpdate (nextProps: IGridProps, nextState: IGridState) {
     scrollFromProps(nextProps, nextState)
   }
 
@@ -286,7 +258,7 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
             <Background
               manager={columnManager}
               range={columnsRange}
-              type={BackgroundType.Vertical}
+              type={BackgroundTypeEnum.Vertical}
             />
           )
         }
@@ -295,7 +267,7 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
             <Background
               manager={rowManager}
               range={rowsRange}
-              type={BackgroundType.Horizontal}
+              type={BackgroundTypeEnum.Horizontal}
             />
           )
         }

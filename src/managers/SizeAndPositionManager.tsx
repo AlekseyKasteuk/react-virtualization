@@ -1,22 +1,16 @@
-import IndexCache, { TreeNode } from './IndexCache'
+import IndexCache from '../utils/IndexCache'
 
-import { Size } from './types'
-
-interface SizeAndPositionManagerProps {
-  count: number,
-  size: Size,
-}
+import SizeType from "../types/SizeType"
 
 export default class SizeAndPositionManager {
-  private cellStyleCache: Map<number, React.CSSProperties>
   private sizeCache: Map<number, number>
   private pixelCache: Map<number, number>
   private indexCache: IndexCache
-  private size: Size
+  private size: SizeType
   private _fullSize: number
   private _count: number
 
-  constructor ({ count, size }: { count: number, size: Size }) {
+  constructor ({ count, size }: { count: number, size: SizeType }) {
     this._count = count;
     this.size = size
     if (typeof size === 'number') {
@@ -58,26 +52,26 @@ export default class SizeAndPositionManager {
   }
 
   getSize (index: number) {
-    const _index: number = this.getIndex(index)
+    index = this.getIndex(index)
     if (typeof this.size === 'number') {
       return this.size
     }
-    if (!this.sizeCache.has(_index)) {
-      this.sizeCache.set(_index, this.size(_index))
+    if (!this.sizeCache.has(index)) {
+      this.sizeCache.set(index, this.size(index))
     }
-    return this.sizeCache.get(_index)
+    return this.sizeCache.get(index)
   }
 
   getPixelByIndex (index: number) {
-    const _index: number = this.getIndex(index)
+    index = this.getIndex(index)
     if (typeof this.size === 'number') {
-      return _index * this.size
+      return index * this.size
     }
-    if (!this.pixelCache.has(_index)) {
-      const value = _index === 0 ? 0 : this.getPixelByIndex(index - 1)
-      this.pixelCache.set(_index, value)
+    if (!this.pixelCache.has(index)) {
+      const pixel = index > 0 ? (this.getPixelByIndex(index - 1) + this.getSize(index - 1)) : 0
+      this.pixelCache.set(index, pixel)
     }
-    return this.pixelCache.get(_index)
+    return this.pixelCache.get(index)
   }
 
   getIndexByPixel (pixel: number) {
@@ -89,24 +83,23 @@ export default class SizeAndPositionManager {
     if (typeof this.size === 'number') {
       index = Math.floor(pixel / this.size)
     } else {
-      if (!this.indexCache.has(pixel)) {
-        const proportion = pixel / this.fullSize
-        let index = (this.count - 1) * proportion
+      let { index: cachedIndex } = this.indexCache.get(pixel) || {}
+      if (cachedIndex === undefined) {
+        cachedIndex = (this.count - 1) * Math.floor(pixel / this.fullSize)
         while (true) {
-          const start = this.getPixelByIndex(index)
-          const end = start + this.getSize(index)
-          this.indexCache.set({ start, end, value: index })
+          const start = this.getPixelByIndex(cachedIndex)
+          const end = start + this.getSize(cachedIndex)
+          this.indexCache.set({ start, end, index: cachedIndex })
           if (pixel < start) {
-            index--
+            cachedIndex--
           } else if (pixel > end) {
-            index++
+            cachedIndex++
           } else {
             break
           }
         }
       }
-      const { value } = this.indexCache.get(pixel)
-      index = value
+      index = cachedIndex
     }
     return this.getIndex(index)
   }
