@@ -8,6 +8,7 @@ interface SizeAndPositionManagerProps {
 }
 
 export default class SizeAndPositionManager {
+  private cellStyleCache: Map<number, React.CSSProperties>
   private sizeCache: Map<number, number>
   private pixelCache: Map<number, number>
   private indexCache: IndexCache
@@ -56,7 +57,7 @@ export default class SizeAndPositionManager {
     return index
   }
 
-  public getSize (index: number) {
+  getSize (index: number) {
     const _index: number = this.getIndex(index)
     if (typeof this.size === 'number') {
       return this.size
@@ -67,7 +68,7 @@ export default class SizeAndPositionManager {
     return this.sizeCache.get(_index)
   }
 
-  public getPixelByIndex (index: number) {
+  getPixelByIndex (index: number) {
     const _index: number = this.getIndex(index)
     if (typeof this.size === 'number') {
       return _index * this.size
@@ -79,7 +80,7 @@ export default class SizeAndPositionManager {
     return this.pixelCache.get(_index)
   }
 
-  public getIndexByPixel (pixel: number) {
+  getIndexByPixel (pixel: number) {
     let index: number
 
     if (pixel > this.fullSize) {

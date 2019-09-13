@@ -32,6 +32,7 @@ export interface Props {
       endColumnIndex: number,
       rowManager: SizeAndPositionManager,
       columnManager: SizeAndPositionManager,
+      getStyle: (rowIndex: number, columnIndex: number) => React.CSSProperties
     }
   ) => React.ReactNode
 }

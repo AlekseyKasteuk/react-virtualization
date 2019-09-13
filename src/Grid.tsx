@@ -64,6 +64,14 @@ function getChangedProps(props: GridProps, prevProps: Partial<GridProps>): boole
   return Object.keys(prevProps).some((key: keyof GridProps) => props[key] !== prevProps[key])
 }
 
+const scrollFromProps = (props: GridProps, state: GridState) => {
+  const { onScroll } = props
+  const { scrollLeft, scrollTop } = state
+  if (onScroll && (props.scrollLeft !== scrollLeft || props.scrollTop !== scrollTop)) {
+    onScroll({ scrollLeft, scrollTop })
+  }
+}
+
 export default class Grid extends React.PureComponent<GridProps, GridState> {
   static getDerivedStateFromProps (props: GridProps, state: GridState): Partial<GridState> {
     const hasChanges: boolean = getChangedProps(props, state.prevProps)
@@ -100,7 +108,13 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
 
     let scrollTop: number = (props.scrollTop === undefined ? state.scrollTop : props.scrollTop) || 0
     if (props.scrollToRow !== state.prevProps.scrollToRow && props.scrollToRow !== undefined) {
-      scrollTop = rowManager.getPixelByIndex(props.scrollToRow)
+      const rowPixel = rowManager.getPixelByIndex(props.scrollToRow)
+      const rowSize = rowManager.getSize(props.scrollToRow)
+      if (rowPixel < scrollTop) {
+        scrollTop = rowPixel
+      } else if (rowPixel + rowSize > scrollTop + props.height) {
+        scrollTop = Math.max(0, rowPixel - props.height + rowSize)
+      }
     }
     if (state.scrollTop !== scrollTop) {
       changedState.scrollTop = scrollTop
@@ -117,9 +131,13 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
     }
 
     let scrollLeft: number = (props.scrollLeft === undefined ? state.scrollLeft : props.scrollLeft) || 0
-    if (props.scrollToColumn !== state.prevProps.scrollToColumn) {
-      if (props.scrollToColumn !== undefined) {
-        scrollLeft = columnManager.getPixelByIndex(props.scrollToColumn)
+    if (props.scrollToColumn !== state.prevProps.scrollToColumn && props.scrollToColumn !== undefined) {
+      const columnPixel = columnManager.getPixelByIndex(props.scrollToColumn)
+      const columnSize = columnManager.getSize(props.scrollToColumn)
+      if (columnPixel < scrollLeft) {
+        scrollLeft = columnPixel
+      } else if (columnPixel + columnSize > scrollLeft + props.width) {
+        scrollLeft = Math.max(0, columnPixel - props.width + columnSize)
       }
     }
     if (state.scrollLeft !== scrollLeft) {
@@ -183,11 +201,11 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
   }
 
   componentDidMount () {
-    const { onScroll } = this.props
-    const { scrollLeft, scrollTop } = this.state
-    if (onScroll && (this.props.scrollLeft !== scrollLeft || this.props.scrollTop !== scrollTop)) {
-      onScroll({ scrollLeft, scrollTop })
-    }
+    scrollFromProps(this.props, this.state)
+  }
+
+  componentDidUpdate (nextProps: GridProps, nextState: GridState) {
+    scrollFromProps(nextProps, nextState)
   }
 
   onScroll = (event: React.UIEvent): void => {
@@ -208,7 +226,6 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
 
   getStyle = (rowIndex: number, columnIndex: number): React.CSSProperties => ({
     position: 'absolute',
-    boxSizing: 'border-box',
     top: `${this.state.rowManager.getPixelByIndex(rowIndex)}px`,
     left: `${this.state.columnManager.getPixelByIndex(columnIndex)}px`,
     height: `${this.state.rowManager.getSize(rowIndex)}px`,
@@ -238,7 +255,7 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
 
     const cells = cellRenderer && permutations(
       range(rowsRange.start, rowsRange.end), range(columnsRange.start, columnsRange.end)
-    ).map(([rowIndex, columnIndex]: [number, number], index, all) => {
+    ).map(([rowIndex, columnIndex]: [number, number]) => {
       return cellRenderer({ rowManager, columnManager, rowIndex, columnIndex, style: this.getStyle(rowIndex, columnIndex) })
     })
     const ranges = cellRangeRenderer && cellRangeRenderer({
@@ -247,7 +264,8 @@ export default class Grid extends React.PureComponent<GridProps, GridState> {
       startRowIndex: rowsRange.start,
       endRowIndex: rowsRange.end,
       startColumnIndex: columnsRange.start,
-      endColumnIndex: columnsRange.end
+      endColumnIndex: columnsRange.end,
+      getStyle: this.getStyle,
     })
 
     return (

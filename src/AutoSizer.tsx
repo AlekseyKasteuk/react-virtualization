@@ -1,8 +1,6 @@
 import * as React from 'react'
 
-interface AutoSizerProps {
-  width?: number,
-  height?: number,
+interface AutoSizerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.FunctionComponent<{ width: number, height: number }>
 }
 
@@ -17,7 +15,7 @@ export default class AutoSizer extends React.PureComponent<AutoSizerProps, AutoS
 
   constructor (props: AutoSizerProps) {
     super(props)
-    this.state = { width: props.width, height: props.height }
+    this.state = { width: 0, height: 0 }
   }
 
   componentDidMount () {
@@ -44,7 +42,7 @@ export default class AutoSizer extends React.PureComponent<AutoSizerProps, AutoS
   render () {
     const { width, height } = this.state
     return (
-      <div ref={this.ref} style={{ width: '100%', height: '100%', padding: 0, margin: 0, border: 'none' }}>
+      <div {...this.props} ref={this.ref} style={{ width: '100%', height: '100%', padding: 0, margin: 0, border: 'none' }}>
         {!!width && !!height && this.props.children({ width, height })}
       </div>
     )

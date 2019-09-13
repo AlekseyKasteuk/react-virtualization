@@ -10,33 +10,8 @@ export interface BackgroundProps {
   manager: SizeAndPositionManager,
   range: Range,
   type: BackgroundType,
+  color?: string,
 }
-
-// const getGradientElementsByPixel = (pixel: number, color: string = '#ccc') => [
-//   `transparent ${pixel - 1}px`,
-//   `${color} ${pixel}px`,
-//   `transparent ${pixel + 1}px`
-// ]
-
-// getBackground = (): string => {
-//   const { type, manager, range: { start, end } } = this.props
-//   if (start >= end) {
-//     return null
-//   }
-//   const angle = type === BackgroundType.Horizontal ? 0 : 90
-//   const gradientPairs = range(start, end).reduce((acc, index) => {
-//     const size = this.props.manager.getSize(index)
-//     if (size) {
-//       if (index !== manager.count) {
-//         const endPixel = this.props.manager.getPixelByIndex(index) + this.props.manager.getSize(index)
-//         acc.push(...getGradientElementsByPixel(endPixel))
-//       }
-//     }
-//     return acc
-//   }, [])
-
-//   return `linear-gradient(${angle}deg,transparent 0px,${gradientPairs.join(',')})`
-// }
 
 export default class Background extends React.PureComponent<BackgroundProps> {
   canvas = document.createElement('canvas')
@@ -53,12 +28,12 @@ export default class Background extends React.PureComponent<BackgroundProps> {
   }
 
   getBackground = (): string => {
-    const { type, manager, range: { start, end } } = this.props
+    const { type, manager, range: { start, end }, color = '#e7e7e7' } = this.props
     const isHirizontal = type === BackgroundType.Horizontal
 
     this.canvas[isHirizontal ? 'height' : 'width'] = manager.fullSize
     const context = this.canvas.getContext('2d')
-    context.fillStyle = '#e7e7e7'
+    context.fillStyle = color
     if (start >= end) {
       return null
     }
