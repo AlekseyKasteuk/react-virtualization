@@ -53,7 +53,9 @@ class TestComponent extends React.PureComponent<{}, { selectedCell?: ISelectedCe
   }
   
   onKeyPress = (event: React.KeyboardEvent) => {
-    event.preventDefault()
+    if ([37, 38, 39, 40].indexOf(event.keyCode) > -1) {
+      event.preventDefault()
+    }
     switch (event.keyCode) {
       case 37: return this.changeSelectedCellCoords({ x: 1 })
       case 38: return this.changeSelectedCellCoords({ y: 1 })
@@ -95,7 +97,6 @@ class TestComponent extends React.PureComponent<{}, { selectedCell?: ISelectedCe
       >
         {
           ({ width, height }) => (
-            
             <Grid
               width={width}
               height={height}
