@@ -7,9 +7,7 @@ export default class ScrollWrapper extends React.PureComponent<IScrollWrapperPro
 
   componentDidMount () { this.setPosition() }
 
-  componentDidUpdate (prevProps: IScrollWrapperProps) {
-    this.setPosition()
-  }
+  componentDidUpdate () { this.setPosition() }
 
   setPosition = () => {
     const { scrollTop, scrollLeft } = this.props

@@ -6,4 +6,6 @@ export default interface IGridProps extends IHorizontalListProps, IVerticalListP
   overscanColumnCount?: number;
   enableBackgroundVerticalLines?: boolean;
   enableBackgroundHorizontalLines?: boolean;
+  verticalBackgroundLinesColor?: string;
+  horizontalBackgroundLinesColor?: string;
 }

@@ -2,23 +2,37 @@ import IndexCache from '../utils/IndexCache'
 
 import SizeType from "../types/SizeType"
 
+type SizeAndPositionManagerParams = { count: number, size: SizeType, estimatedFullSize?: number }
+
 export default class SizeAndPositionManager {
-  private sizeCache: Map<number, number>
   private pixelCache: Map<number, number>
   private indexCache: IndexCache
   private size: SizeType
   private _fullSize: number
   private _count: number
+  private _lastCalculatedIndex: number
 
-  constructor ({ count, size }: { count: number, size: SizeType }) {
+  constructor ({ count, size, estimatedFullSize }: SizeAndPositionManagerParams) {
+    if (count < 0) {
+      throw new Error('Invalid "count" param: "count" param must me > 0')
+    }
+    if (!isFinite(count) && estimatedFullSize === undefined) {
+      throw new Error('Specify "estimatedFullSize" param to provide infinite scroll')
+    }
     this._count = count;
     this.size = size
-    if (typeof size === 'number') {
+    if (typeof size === 'number' && isFinite(count)) {
+      this._lastCalculatedIndex = count - 1;
       this._fullSize = count * size
     } else {
-      this.sizeCache = new Map()
       this.pixelCache = new Map()
       this.indexCache = new IndexCache()
+      if (estimatedFullSize !== undefined) {
+        this._lastCalculatedIndex = -1;
+        this._fullSize = estimatedFullSize
+      } else {
+        this._lastCalculatedIndex = count - 1;
+      }
     }
   }
 
@@ -28,6 +42,9 @@ export default class SizeAndPositionManager {
 
   get fullSize () : number {
     if (this._fullSize === undefined) {
+      if (!isFinite(this.count)) {
+        throw new Error('You try to get full size by Infinity')
+      }
       this._fullSize = 0
       for (let i: number = 0; i < this.count; i++) {
         this._fullSize += this.getSize(i)
@@ -53,31 +70,36 @@ export default class SizeAndPositionManager {
 
   getSize (index: number) {
     index = this.getIndex(index)
-    if (typeof this.size === 'number') {
-      return this.size
-    }
-    if (!this.sizeCache.has(index)) {
-      this.sizeCache.set(index, this.size(index))
-    }
-    return this.sizeCache.get(index)
+    return typeof this.size === 'number' ? this.size : this.size(index)
   }
 
   getPixelByIndex (index: number) {
     index = this.getIndex(index)
-    if (typeof this.size === 'number') {
+    let pixel: number
+    if (typeof this.size === 'number' && isFinite(this.count)) {
       return index * this.size
+    } else {
+      if (!this.pixelCache.has(index)) {
+        pixel = index > 0 ? (this.getPixelByIndex(index - 1) + this.getSize(index - 1)) : 0
+        this.pixelCache.set(index, pixel)
+      } else {
+        pixel = this.pixelCache.get(index)
+      }
     }
-    if (!this.pixelCache.has(index)) {
-      const pixel = index > 0 ? (this.getPixelByIndex(index - 1) + this.getSize(index - 1)) : 0
-      this.pixelCache.set(index, pixel)
+    if (index > this._lastCalculatedIndex) {
+      this._lastCalculatedIndex = index
+      const size = pixel + this.getSize(index)
+      if (index === this.count - 1 || this.fullSize < size) {
+        this._fullSize = size
+      }
     }
-    return this.pixelCache.get(index)
+    return pixel
   }
 
   getIndexByPixel (pixel: number) {
     let index: number
 
-    if (pixel > this.fullSize) {
+    if (pixel >= this.fullSize && isFinite(this.count)) {
       return this.count - 1
     }
     if (typeof this.size === 'number') {
@@ -85,11 +107,16 @@ export default class SizeAndPositionManager {
     } else {
       let { index: cachedIndex } = this.indexCache.get(pixel) || {}
       if (cachedIndex === undefined) {
-        cachedIndex = (this.count - 1) * Math.floor(pixel / this.fullSize)
+        const count = isFinite(this.count) ? this.count - 1 : Math.max(this._lastCalculatedIndex, 0)
+        cachedIndex = count * Math.floor(pixel / Math.max(this.fullSize, pixel))
         while (true) {
           const start = this.getPixelByIndex(cachedIndex)
           const end = start + this.getSize(cachedIndex)
-          this.indexCache.set({ start, end, index: cachedIndex })
+
+          if (!this.indexCache.has(start)) {
+            this.indexCache.set({ start, end, index: cachedIndex })
+          }
+
           if (pixel < start) {
             cachedIndex--
           } else if (pixel > end) {

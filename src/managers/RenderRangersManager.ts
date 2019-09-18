@@ -1,50 +1,55 @@
 import SizeAndPositionManager from './SizeAndPositionManager'
 
-interface RowParams {
-  rowManager: SizeAndPositionManager,
-  scrollTop: number,
-  height: number,
-  overscanRowCount: number,
-}
-interface ColumnParams {
-  columnManager: SizeAndPositionManager,
-  scrollLeft: number,
-  width: number,
-  overscanColumnCount: number,
-}
-interface FullParams extends RowParams, ColumnParams {}
+import RangeType from '../types/RangeType'
 
-export interface Range {
-  start: number,
-  end: number,
+export enum ScrollTypeEnum {
+  Before = 'SCROLL_BEFORE',
+  After = 'SCROLL_AFTER',
+}
+
+type GetRangeType = (
+  manager: SizeAndPositionManager,
+  scrollPosition: number,
+  size: number,
+  overscanCount: number,
+  scrollType?: ScrollTypeEnum
+) => RangeType
+
+const getRange: GetRangeType = (
+  manager,
+  scrollPosition,
+  size,
+  overscanCount,
+  scrollType
+): { start: number, end: number } => {
+  const startIndex = manager.getIndexByPixel(scrollPosition)
+  const startOverscan = scrollType === ScrollTypeEnum.Before ? overscanCount : 0
+  const start = Math.max(startIndex - startOverscan, 0)
+
+  const endIndex = manager.getIndexByPixel(scrollPosition + size)
+  const endOverscan = scrollType === ScrollTypeEnum.After ? overscanCount : 0
+  const end = Math.min(endIndex + endOverscan, manager.count - 1)
+
+  return { start, end }
 }
 
 export default class RenderRangesManager {
-  private rowsRange: Range
-  private columnsRange: Range
+  private rowsRange: RangeType
+  private columnsRange: RangeType
 
-  getRowsRange ({ rowManager, scrollTop, height, overscanRowCount }: RowParams): Range {
-    const start = Math.max(rowManager.getIndexByPixel(scrollTop) - overscanRowCount, 0)
-    const end = Math.min(rowManager.getIndexByPixel(scrollTop + height) + overscanRowCount, rowManager.count - 1)
+  getRowsRange: GetRangeType = (rowManager, scrollTop, height, overscanRowCount, rowScrollType) => {
+    const { start, end } = getRange(rowManager, scrollTop, height, overscanRowCount, rowScrollType)
     if (!this.rowsRange || this.rowsRange.start !== start || this.rowsRange.end !== end) {
       this.rowsRange = { start, end }
     }
     return this.rowsRange
   }
 
-  getColumnsRange ({ columnManager, scrollLeft, width, overscanColumnCount }: ColumnParams): Range {
-    const start = Math.max(columnManager.getIndexByPixel(scrollLeft) - overscanColumnCount, 0)
-    const end = Math.min(columnManager.getIndexByPixel(scrollLeft + width) + overscanColumnCount, columnManager.count - 1)
+  getColumnsRange: GetRangeType = (columnManager, scrollLeft, width, overscanColumnCount, columnScrollType) => {
+    const { start, end } = getRange(columnManager, scrollLeft, width, overscanColumnCount, columnScrollType)
     if (!this.columnsRange || this.columnsRange.start !== start || this.columnsRange.end !== end) {
       this.columnsRange = { start, end }
     }
     return this.columnsRange
-  }
-
-  getRowsAndColumnsRange (params: FullParams): { rows: Range, columns: Range } {
-    return {
-      rows: this.getRowsRange(params),
-      columns: this.getColumnsRange(params),
-    }
   }
 }

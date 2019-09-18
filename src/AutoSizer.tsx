@@ -11,7 +11,7 @@ interface IAutoSizerState {
 
 export default class AutoSizer extends React.PureComponent<IAutoSizerProps, IAutoSizerState> {
   ref: React.RefObject<HTMLDivElement> = React.createRef()
-  timeoutId: number = null
+  timeoutId?: number = null
 
   constructor (props: IAutoSizerProps) {
     super(props)
@@ -23,7 +23,7 @@ export default class AutoSizer extends React.PureComponent<IAutoSizerProps, IAut
   }
 
   getDivMeasures = () => {
-    this.timeoutId = setTimeout(() => {
+    this.timeoutId = window.setTimeout(() => {
       const { offsetHeight: height, offsetWidth: width } = this.ref.current
       if (this.state.height !== height || this.state.width !== width) {
         this.setState({ width, height }, () => this.getDivMeasures())

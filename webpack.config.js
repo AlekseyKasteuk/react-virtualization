@@ -1,34 +1,42 @@
+const path = require('path')
+const HtmlWebPackPlugin = require("html-webpack-plugin")
+
 module.exports = {
-  entry: './demos/App.tsx',
+  entry: './demos/Demo.tsx',
   output: {
     filename: './demos/App.js',
   },
-  mode: "development",
+  devServer: {
+    contentBase: path.join(__dirname, 'dist'),
+    port: 9009
+  },
   devtool: "source-map",
   resolve: {
-    extensions: [".ts", ".tsx"]
+    modules: ['node_modules', 'src', 'demos'],
+    extensions: [".ts", ".tsx", ".js", '.jsx']
   },
 
   module: {
     rules: [
       {
         test: /\.ts(x?)$/,
-        exclude: /node_modules/,
-        use: [
-          {
-              loader: "ts-loader"
-          }
-        ]
+        loader: 'awesome-typescript-loader'
       },
       {
-        enforce: "pre",
-        test: /\.js$/,
-        loader: "source-map-loader"
+        test: /\.html$/,
+        use: [
+          {
+            loader: "html-loader",
+            options: { minimize: true }
+          }
+        ]
       }
     ]
   },
-  externals: {
-    "react": "React",
-    "react-dom": "ReactDOM"
-  }
+  plugins: [
+    new HtmlWebPackPlugin({
+      template: "./demos/index.html",
+      filename: "./index.html"
+    })
+  ],
 };
