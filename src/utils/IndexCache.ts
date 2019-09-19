@@ -8,8 +8,8 @@ export class TreeNode {
   private start: number
   private end: number
   public index: number
-  private left: TreeNode
-  private right: TreeNode
+  private left?: TreeNode
+  private right?: TreeNode
 
   constructor ({ start, end, index }: TreeNodeParams) {
     this.start = start
@@ -29,17 +29,23 @@ export class TreeNode {
     return Math.max(this.leftHeight, this.rightHeight) + 1
   }
 
-  private rotateRight() {
-    const head = this.left
-    this.left = this.left.right
-    head.right = this
-    return head
+  private rotateRight(): TreeNode {
+    if (this.left) {
+      const head = this.left
+      this.left = this.left.right
+      head.right = this
+      return head
+    }
+    return this
   }
-  private rotateLeft() {
-    const head = this.right
-    this.right = this.right.left
-    head.left = this
-    return head
+  private rotateLeft(): TreeNode {
+    if (this.right) {
+      const head = this.right
+      this.right = this.right.left
+      head.left = this
+      return head
+    }
+    return this
   }
   private balanceTree() {
     if (Math.abs(this.leftHeight - this.rightHeight) > 1) {
@@ -48,7 +54,7 @@ export class TreeNode {
     return this
   }
 
-  add(params: TreeNodeParams) {
+  add(params: TreeNodeParams): TreeNode {
     const { start, end, index } = params
     if (this.start >= end) {
       if (this.left) {
@@ -68,7 +74,7 @@ export class TreeNode {
     return this.balanceTree()
   }
 
-  get(pixel: number) : TreeNode {
+  get(pixel: number) : TreeNode | null {
     if (this.start > pixel) {
       return this.left ? this.left.get(pixel) : null
     } else if (this.end < pixel) {
@@ -80,7 +86,7 @@ export class TreeNode {
 }
 
 export default class IndexCache {
-  private treeNode: TreeNode
+  private treeNode?: TreeNode
 
   set (params: TreeNodeParams) {
     if (!this.treeNode) {

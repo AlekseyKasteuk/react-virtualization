@@ -5,10 +5,10 @@ import SizeType from "../types/SizeType"
 type SizeAndPositionManagerParams = { count: number, size: SizeType, estimatedFullSize?: number }
 
 export default class SizeAndPositionManager {
-  private pixelCache: Map<number, number>
-  private indexCache: IndexCache
+  private pixelCache?: Map<number, number>
+  private indexCache?: IndexCache
   private size: SizeType
-  private _fullSize: number
+  private _fullSize: number = 0
   private _count: number
   private _lastCalculatedIndex: number
 
@@ -68,12 +68,12 @@ export default class SizeAndPositionManager {
     return index
   }
 
-  getSize (index: number) {
+  getSize (index: number): number {
     index = this.getIndex(index)
     return typeof this.size === 'number' ? this.size : this.size(index)
   }
 
-  getPixelByIndex (index: number) {
+  getPixelByIndex (index: number): number {
     index = this.getIndex(index)
     let pixel: number
     if (typeof this.size === 'number' && isFinite(this.count)) {
@@ -96,7 +96,7 @@ export default class SizeAndPositionManager {
     return pixel
   }
 
-  getIndexByPixel (pixel: number) {
+  getIndexByPixel (pixel: number): number {
     let index: number
 
     if (pixel >= this.fullSize && isFinite(this.count)) {

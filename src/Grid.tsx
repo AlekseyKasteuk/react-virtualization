@@ -2,8 +2,6 @@ import * as React from 'react'
 
 import IGridProps from "./interfaces/IGridProps"
 import RangeType from './types/RangeType'
-import permutations from './utils/permutations'
-import range from './utils/range'
 
 import SizeAndPositionManager from './managers/SizeAndPositionManager'
 import RenderRangersManager, { ScrollTypeEnum } from './managers/RenderRangersManager'

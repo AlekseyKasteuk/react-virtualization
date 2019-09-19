@@ -34,8 +34,8 @@ const getRange: GetRangeType = (
 }
 
 export default class RenderRangesManager {
-  private rowsRange: RangeType
-  private columnsRange: RangeType
+  private rowsRange?: RangeType
+  private columnsRange?: RangeType
 
   getRowsRange: GetRangeType = (rowManager, scrollTop, height, overscanRowCount, rowScrollType) => {
     const { start, end } = getRange(rowManager, scrollTop, height, overscanRowCount, rowScrollType)

@@ -42,10 +42,10 @@ export default class Background extends React.PureComponent<IBackgroundProps> {
     this.canvas.height = isHirizontal ? height : 1
     this.canvas.width = isHirizontal ? 1 : width
     const context = this.canvas.getContext('2d')
-    context.fillStyle = color
-    if (start >= end) {
-      return null
+    if (start >= end || !context) {
+      return ''
     }
+    context.fillStyle = color
     const delta = manager.getPixelByIndex(start)
     for (let index of range(start, end)) {
       const startPixel = manager.getPixelByIndex(index)
