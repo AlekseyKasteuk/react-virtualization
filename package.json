@@ -1,8 +1,9 @@
 {
   "name": "react-virtualization",
   "version": "1.0.0",
-  "description": "",
+  "description": "Rewritten verstion of react-virtualize",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "jest --config jestconfig.json",
