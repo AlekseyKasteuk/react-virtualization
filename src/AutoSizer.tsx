@@ -42,7 +42,11 @@ export default class AutoSizer extends React.PureComponent<IAutoSizerProps, IAut
   render () {
     const { width, height } = this.state
     return (
-      <div {...this.props} ref={this.ref} style={{ width: '100%', height: '100%', padding: 0, margin: 0, border: 'none' }}>
+      <div
+        {...this.props}
+        ref={this.ref}
+        style={{ width: '100%', height: '100%', padding: 0, margin: 0, border: 'none' }}
+      >
         {!!width && !!height && this.props.children({ width, height })}
       </div>
     )

@@ -7,22 +7,34 @@ interface TreeNodeParams {
 export class TreeNode {
   private start: number
   private end: number
-  public index: number
-  private left?: TreeNode
-  private right?: TreeNode
+  private _index: number
+  private _left?: TreeNode
+  private _right?: TreeNode
 
   constructor ({ start, end, index }: TreeNodeParams) {
     this.start = start
     this.end = end
-    this.index = index
+    this._index = index
   }
 
-  get leftHeight () : number {
+  get index(): number {
+    return this._index
+  }
+
+  get left(): TreeNode {
+    return this._left
+  }
+
+  get right(): TreeNode {
+    return this._right
+  }
+
+  private get leftHeight () : number {
     return this.left ? this.left.height : 0
   }
 
-  get rightHeight () : number {
-    return this.left ? this.left.height : 0
+  private get rightHeight () : number {
+    return this.right ? this.right.height : 0
   }
 
   get height () : number {
@@ -32,8 +44,8 @@ export class TreeNode {
   private rotateRight(): TreeNode {
     if (this.left) {
       const head = this.left
-      this.left = this.left.right
-      head.right = this
+      this._left = this.left.right
+      head._right = this
       return head
     }
     return this
@@ -41,46 +53,37 @@ export class TreeNode {
   private rotateLeft(): TreeNode {
     if (this.right) {
       const head = this.right
-      this.right = this.right.left
-      head.left = this
+      this._right = this.right.left
+      head._left = this
       return head
     }
     return this
   }
-  private balanceTree() {
+  private balanceTree(): TreeNode {
     if (Math.abs(this.leftHeight - this.rightHeight) > 1) {
       return this.leftHeight > this.rightHeight ? this.rotateRight() : this.rotateLeft()
     }
     return this
   }
 
-  add(params: TreeNodeParams): TreeNode {
-    const { start, end, index } = params
+  add({ start, end, index }: TreeNodeParams): TreeNode {
     if (this.start >= end) {
-      if (this.left) {
-        this.left.add(params)
-      } else {
-        this.left = new TreeNode(params)
-      }
+      this._left = this.left ? this.left.add({ start, end, index }) : new TreeNode({ start, end, index })
     } else if (this.end <= start) {
-      if (this.right) {
-        this.right.add(params)
-      } else {
-        this.right = new TreeNode(params)
-      }
-    } else if (this.start !== start || this.end !== end || this.index !== index) {
+      this._right = this.right ? this.right.add({ start, end, index }) : new TreeNode({ start, end, index })
+    } else if (this.start !== start || this.end !== end || this._index !== index) {
       throw new Error('Collision')
     }
     return this.balanceTree()
   }
 
-  get(pixel: number) : TreeNode | null {
+  get(pixel: number) : number {
     if (this.start > pixel) {
-      return this.left ? this.left.get(pixel) : null
-    } else if (this.end < pixel) {
-      return this.right ? this.right.get(pixel) : null
+      return this.left ? this.left.get(pixel) : -1
+    } else if (this.end <= pixel) {
+      return this.right ? this.right.get(pixel) : -1
     } else {
-      return this
+      return this.index
     }
   }
 }
@@ -88,7 +91,7 @@ export class TreeNode {
 export default class IndexCache {
   private treeNode?: TreeNode
 
-  set (params: TreeNodeParams) {
+  set (params: TreeNodeParams): void {
     if (!this.treeNode) {
       this.treeNode = new TreeNode(params)
     } else {
@@ -96,11 +99,11 @@ export default class IndexCache {
     }
   }
 
-  get (pixel: number) {
-    return this.treeNode ? this.treeNode.get(pixel) : null
+  get (pixel: number): number {
+    return this.treeNode ? this.treeNode.get(pixel) : -1
   }
 
-  has (pixel: number) {
-    return this.get(pixel) !== null
+  has (pixel: number): boolean {
+    return this.get(pixel) !== -1
   }
 }

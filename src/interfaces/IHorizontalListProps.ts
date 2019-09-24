@@ -8,5 +8,5 @@ export default interface IHorizontalListProps extends IGridBaseProps {
   columnCount?: number;
   columnWidth?: SizeType;
   columnManager?: SizeAndPositionManager;
-  estimatedFullWidth?: number;
+  columnsCountToAdd?: number;
 }

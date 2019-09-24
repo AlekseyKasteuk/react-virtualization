@@ -8,7 +8,5 @@ export default interface IScrollWrapperProps {
   scrollTop: number;
   scrollLeft: number;
   onScroll: (event: React.UIEvent) => void;
-  rowManager: SizeAndPositionManager;
-  columnManager: SizeAndPositionManager;
   children: React.ReactNode;
 }

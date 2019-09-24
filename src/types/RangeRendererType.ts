@@ -1,5 +1,5 @@
 import RangeRendererParamsType from './RangeRendererParamsType'
 
-type RangeRendererType = (params: RangeRendererParamsType) => React.ReactNode
+type RangeRendererType = React.ComponentType<RangeRendererParamsType>
 
 export default RangeRendererType

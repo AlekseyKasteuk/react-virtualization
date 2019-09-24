@@ -8,5 +8,5 @@ export default interface IVerticalListProps extends IGridBaseProps {
   rowCount?: number;
   rowHeight?: SizeType;
   rowManager?: SizeAndPositionManager;
-  estimatedFullHeight?: number;
+  rowsCountToAdd?: number;
 }

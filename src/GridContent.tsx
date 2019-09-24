@@ -16,45 +16,61 @@ export default class GridContent extends React.PureComponent<IGridContentProps> 
     boxSizing: 'border-box',
   })
 
-  render () {
+  private getCells = () => {
     const {
       cellRenderer: CellRenderer,
-      rangeRenderer: RangeRenderer,
       rowsRange,
       columnsRange,
       rowManager,
       columnManager,
     } = this.props
 
-    const cells = CellRenderer && permutations(
-      range(columnsRange.start, columnsRange.end), range(rowsRange.start, rowsRange.end)
-    ).map(([columnIndex, rowIndex]: [number, number]) => {
-      const key = `${rowIndex}:${columnIndex}`
-      return (
-        <CellRenderer
-          key={key}
-          rowManager={rowManager}
-          columnManager={columnManager}
-          rowIndex={rowIndex}
-          columnIndex={columnIndex}
-          getStyle={this.getStyle}
-        />
-      )
-    })
-    const ranges = RangeRenderer && RangeRenderer({
+    if (CellRenderer) {
+      const cellsCoods = permutations(range(columnsRange.start, columnsRange.end), range(rowsRange.start, rowsRange.end))
+      return cellsCoods.map(([columnIndex, rowIndex]: [number, number]) => {
+        const key = `${rowIndex}:${columnIndex}`
+        return (
+          <CellRenderer
+            key={key}
+            rowManager={rowManager}
+            columnManager={columnManager}
+            rowIndex={rowIndex}
+            columnIndex={columnIndex}
+            getStyle={this.getStyle}
+          />
+        )
+      })
+    }
+    return null
+  }
+
+  private getRange = () => {
+    const {
+      rangeRenderer: RangeRenderer,
+      rowsRange,
+      columnsRange,
       rowManager,
       columnManager,
-      startRowIndex: rowsRange.start,
-      endRowIndex: rowsRange.end,
-      startColumnIndex: columnsRange.start,
-      endColumnIndex: columnsRange.end,
-      getStyle: this.getStyle,
-    })
+    } = this.props
+    
+    return RangeRenderer && (
+      <RangeRenderer
+        rowManager={rowManager}
+        columnManager={columnManager}
+        startRowIndex={rowsRange.start}
+        endRowIndex={rowsRange.end}
+        startColumnIndex={columnsRange.start}
+        endColumnIndex={columnsRange.end}
+        getStyle={this.getStyle}
+      />
+    )
+  }
 
+  render () {
     return (
       <React.Fragment>
-        { cells }
-        { ranges }
+        { this.getCells() }
+        { this.getRange() }
       </React.Fragment>
     )
   }

@@ -35,7 +35,7 @@ export default class Background extends React.PureComponent<IBackgroundProps> {
     this.canvas.width = props.type === BackgroundTypeEnum.Horizontal ? 1 : props.width
   }
 
-  getBackground = (): string => {
+  private _getBackground = (): string => {
     const { type, manager, range: { start, end }, color, width, height } = this.props
     const isHirizontal = type === BackgroundTypeEnum.Horizontal
 
@@ -48,14 +48,14 @@ export default class Background extends React.PureComponent<IBackgroundProps> {
     context.fillStyle = color
     const delta = manager.getPixelByIndex(start)
     for (let index of range(start, end)) {
-      const startPixel = manager.getPixelByIndex(index)
-      const endPixel = manager.getPixelByIndex(index) + manager.getSize(index)
-      if (index !== start) {
-        isHirizontal ? context.fillRect(0, startPixel - delta, 1, 1) : context.fillRect(startPixel - delta, 0, 1, 1)
-      }
-      if (index !== end) {
-        isHirizontal ? context.fillRect(0, endPixel - delta, 1, 1) : context.fillRect(endPixel - delta, 0, 1, 1)
-      }
+      const size = manager.getSize(index)
+      if (!size) { continue }
+
+      const startPixel = manager.getPixelByIndex(index) - 1
+      const endPixel = manager.getPixelByIndex(index) + size - 1
+      
+      isHirizontal ? context.fillRect(0, startPixel - delta, 1, 1) : context.fillRect(startPixel - delta, 0, 1, 1)
+      isHirizontal ? context.fillRect(0, endPixel - delta, 1, 1) : context.fillRect(endPixel - delta, 0, 1, 1)
     }
     
     return `url(${this.canvas.toDataURL()})`
@@ -78,7 +78,7 @@ export default class Background extends React.PureComponent<IBackgroundProps> {
           height: `${height}px`,
           top: `${top}px`,
           left: `${left}px`,
-          background: this.getBackground(),
+          background: this._getBackground(),
         }}
       />
     )

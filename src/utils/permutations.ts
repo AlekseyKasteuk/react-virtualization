@@ -6,7 +6,7 @@ const permutations = (arr: any[], ...arrs: any[][]): any[] => {
     for (let item of arr) {
       const itemArr = [item]
       for (let permutation of permutations) {
-        acc.push(itemArr.concat(permutation))
+        acc.push(itemArr.concat(arrs.length === 1 && Array.isArray(permutation) ? [permutation] : permutation))
       }
     }
     return acc

@@ -57,22 +57,14 @@ const scrollFromProps = (props: IGridProps, state: IGridState) => {
 
 const getRowManager = (props: IGridProps, state: IGridState): SizeAndPositionManager => {
   if (!props.rowManager && (props.rowHeight !== state.prevProps.rowHeight || props.rowCount !== state.prevProps.rowCount)) {
-    return new SizeAndPositionManager({
-      count: props.rowCount,
-      size: props.rowHeight,
-      estimatedFullSize: props.estimatedFullHeight
-    })
+    return new SizeAndPositionManager(props.rowCount, props.rowHeight, props.rowsCountToAdd)
   }
   return props.rowManager || state.rowManager
 }
 
 const getColumnManager = (props: IGridProps, state: IGridState): SizeAndPositionManager => {
   if (!props.columnManager && (props.columnWidth !== state.prevProps.columnWidth || props.columnCount !== state.prevProps.columnCount)) {
-    return new SizeAndPositionManager({
-      count: props.columnCount,
-      size: props.columnWidth,
-      estimatedFullSize: props.estimatedFullWidth,
-    })
+    return new SizeAndPositionManager(props.columnCount, props.columnWidth, props.columnsCountToAdd)
   }
   return props.columnManager || state.columnManager
 }
@@ -164,11 +156,11 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
 
       rowCount,
       rowHeight,
-      rowManager = new SizeAndPositionManager({ count: rowCount, size: rowHeight, }),
+      rowManager = new SizeAndPositionManager(rowCount, rowHeight),
   
       columnCount,
       columnWidth,
-      columnManager = new SizeAndPositionManager({ count: columnCount, size: columnWidth, }),
+      columnManager = new SizeAndPositionManager(columnCount, columnWidth),
 
       overscanCount = 0,
       overscanRowCount = overscanCount,
@@ -203,8 +195,8 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
     scrollFromProps(this.props, this.state)
   }
 
-  componentDidUpdate (nextProps: IGridProps, nextState: IGridState) {
-    scrollFromProps(nextProps, nextState)
+  componentDidUpdate () {
+    scrollFromProps(this.props, this.state)
   }
 
   onScroll = (event: React.UIEvent): void => {
@@ -261,8 +253,6 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
         onScroll={this.onScroll}
         scrollLeft={scrollLeft}
         scrollTop={scrollTop}
-        rowManager={rowManager}
-        columnManager={columnManager}
         fullHeight={rowManager.fullSize}
         fullWidth={columnManager.fullSize}
       >

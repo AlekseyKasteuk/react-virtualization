@@ -22,8 +22,26 @@ export default class ScrollWrapper extends React.PureComponent<IScrollWrapperPro
   render () {
     const { width, height, onScroll, children, fullWidth, fullHeight } = this.props
     return (
-      <div ref={this.ref} style={{ height: `${height}px`, width: `${width}px`, overflow: 'auto' }} onScroll={onScroll}>
-        <div style={{ height: `${fullHeight}px`, width: `${fullWidth}px`, position: 'relative' }}>
+      <div
+        role="scroll-area"
+        ref={this.ref}
+        style={{
+          height: `${height}px`,
+          width: `${width}px`,
+          overflow: 'auto',
+          overflowX: width === fullWidth ? 'hidden' : 'auto',
+          overflowY: height === fullHeight ? 'hidden' : 'auto',
+        }}
+        onScroll={onScroll}
+      >
+        <div
+          role="scroll-content"
+          style={{
+            height: `${fullHeight}px`,
+            width: `${fullWidth}px`,
+            position: 'relative'
+          }}
+        >
           {children}
         </div>
       </div>
