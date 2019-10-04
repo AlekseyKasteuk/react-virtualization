@@ -1,10 +1,10 @@
 import * as React from 'react'
 
-import GetStyleType from './types/GetStyleType'
+import GetStyleType from '../types/GetStyleType'
 
-import IGridContentProps from "./interfaces/IGridContentProps"
-import permutations from './utils/permutations'
-import range from './utils/range'
+import IGridContentProps from "../interfaces/IGridContentProps"
+import permutations from '../utils/permutations'
+import range from '../utils/range'
 
 export default class GridContent extends React.PureComponent<IGridContentProps> {
   getStyle: GetStyleType = ({ rowIndex = 0, columnIndex = 0 }) => ({

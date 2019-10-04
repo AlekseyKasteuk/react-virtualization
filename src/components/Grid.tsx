@@ -1,13 +1,14 @@
 import * as React from 'react'
 
-import IGridProps from "./interfaces/IGridProps"
-import RangeType from './types/RangeType'
+import IGridProps from "../interfaces/IGridProps"
+import RangeType from '../types/RangeType'
+import OnScrollType from '../types/OnScrollType'
 
-import SizeAndPositionManager from './managers/SizeAndPositionManager'
-import RenderRangersManager, { ScrollTypeEnum } from './managers/RenderRangersManager'
+import SizeAndPositionManager from '../managers/SizeAndPositionManager'
+import RenderRangersManager, { ScrollTypeEnum } from '../managers/RenderRangersManager'
 import Background, { BackgroundTypeEnum } from './Background'
 import GridContent from './GridContent'
-import ScrollWrapper from './ScrollWrapper'
+import ScrollableArea from './ScrollableArea'
 
 interface IGridState {
   prevProps: Partial<IGridProps>;
@@ -199,9 +200,7 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
     scrollFromProps(this.props, this.state)
   }
 
-  onScroll = (event: React.UIEvent): void => {
-    event.preventDefault()
-    const { scrollTop, scrollLeft } = event.currentTarget
+  onScroll: OnScrollType = ({ scrollTop, scrollLeft }, event) => {
 
     const scrollTopDelta: number = this.state.scrollTop - scrollTop
     const rowScrollType: ScrollTypeEnum = scrollTopDelta === 0 ? this.state.rowScrollType : scrollTopDelta < 0 ? ScrollTypeEnum.After : ScrollTypeEnum.Before
@@ -211,9 +210,9 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
     
     if (this.props.onScroll) {
       if (rowScrollType !== this.state.rowScrollType || columnScrollType !== this.state.columnScrollType) {
-        this.setState({ rowScrollType, columnScrollType }, () => this.props.onScroll({ scrollTop, scrollLeft }))
+        this.setState({ rowScrollType, columnScrollType }, () => this.props.onScroll({ scrollTop, scrollLeft }, event))
       } else {
-        this.props.onScroll({ scrollTop, scrollLeft })
+        this.props.onScroll({ scrollTop, scrollLeft }, event)
       }
     } else {
       const { width, height } = this.props
@@ -231,7 +230,7 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
 
   render () {
     const {
-      ScrollComponent = ScrollWrapper,
+      ScrollComponent = ScrollableArea,
       height,
       width,
       children,

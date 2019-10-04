@@ -2,8 +2,8 @@ import * as React from 'react'
 
 import Grid from './Grid'
 
-import IVerticalListProps from "./interfaces/IVerticalListProps"
-import OnScrollType from './types/OnScrollType'
+import IVerticalListProps from "../interfaces/IVerticalListProps"
+import OnScrollType from '../types/OnScrollType'
 
 export default class List extends React.PureComponent<IVerticalListProps> {
   onScroll: OnScrollType = ({ scrollTop }) => this.props.onScroll({ scrollTop })

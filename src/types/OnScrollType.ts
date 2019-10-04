@@ -1,6 +1,8 @@
+import { SyntheticEvent } from 'react'
+
 type OnScrollType = (props: {
   scrollLeft?: number;
   scrollTop?: number;
-}) => void
+}, event?: SyntheticEvent) => void
 
 export default OnScrollType

@@ -59,13 +59,11 @@ export default class SizeAndPositionManager {
     }
     if (index < 0) {
       console.warn('Index is less then 0', index)
-      return 0
     }
-    if (index >= this.count) {
+    if (index > this.count) {
       console.warn('Index is greater or equals count', index)
-      return this.count - 1
     }
-    return index
+    return Math.max(0, Math.min(this.count - 1, index))
   }
 
   getSize (index: number): number {

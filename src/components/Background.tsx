@@ -1,9 +1,9 @@
 import * as React from 'react'
 
-import range from './utils/range'
+import range from '../utils/range'
 
-import RangeType from './types/RangeType'
-import SizeAndPositionManager from './managers/SizeAndPositionManager'
+import RangeType from '../types/RangeType'
+import SizeAndPositionManager from '../managers/SizeAndPositionManager'
 
 export enum BackgroundTypeEnum {
   Vertical = 'vertical',
