@@ -1,8 +1,8 @@
 import * as React from 'react'
 
-import IScrollWrapperProps from './interfaces/IScrollWrapperProps'
+import IScrollableAreaProps from '../interfaces/IScrollableAreaProps'
 
-export default class ScrollWrapper extends React.PureComponent<IScrollWrapperProps> {
+export default class ScrollableArea extends React.PureComponent<IScrollableAreaProps> {
   ref: React.RefObject<HTMLDivElement> = React.createRef()
 
   componentDidMount () { this.setPosition() }
@@ -21,6 +21,7 @@ export default class ScrollWrapper extends React.PureComponent<IScrollWrapperPro
 
   render () {
     const { width, height, onScroll, children, fullWidth, fullHeight } = this.props
+    const child: React.ReactElement = React.Children.only(children)
     return (
       <div
         role="scroll-area"
@@ -34,16 +35,12 @@ export default class ScrollWrapper extends React.PureComponent<IScrollWrapperPro
         }}
         onScroll={onScroll}
       >
-        <div
-          role="scroll-content"
-          style={{
-            height: `${fullHeight}px`,
-            width: `${fullWidth}px`,
-            position: 'relative'
-          }}
-        >
-          {children}
-        </div>
+        {
+          React.cloneElement(
+            child,
+            { style: { ...child.props.style, position: 'relative' } }
+          )
+        }
       </div>
     )
   }

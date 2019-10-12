@@ -1,6 +1,6 @@
 import SizeAndPositionManager from '../managers/SizeAndPositionManager'
 
-export default interface IScrollWrapperProps {
+export default interface IScrollableAreaProps {
   width: number;
   height: number;
   fullWidth: number;
@@ -8,5 +8,5 @@ export default interface IScrollWrapperProps {
   scrollTop: number;
   scrollLeft: number;
   onScroll: (event: React.UIEvent) => void;
-  children: React.ReactNode;
+  children: React.ReactElement;
 }

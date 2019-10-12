@@ -2,8 +2,8 @@ import * as React from 'react'
 
 import Grid from './Grid'
 
-import IHorizontalListProps from "./interfaces/IHorizontalListProps"
-import OnScrollType from './types/OnScrollType'
+import IHorizontalListProps from "../interfaces/IHorizontalListProps"
+import OnScrollType from '../types/OnScrollType'
 
 export default class HorizontalList extends React.PureComponent<IHorizontalListProps> {
   onScroll: OnScrollType = ({ scrollLeft }) => this.props.onScroll({ scrollLeft })

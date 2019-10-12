@@ -1,13 +1,13 @@
 import * as React from 'react'
 
-import IGridProps from "./interfaces/IGridProps"
-import RangeType from './types/RangeType'
+import IGridProps from "../interfaces/IGridProps"
+import RangeType from '../types/RangeType'
 
-import SizeAndPositionManager from './managers/SizeAndPositionManager'
-import RenderRangersManager, { ScrollTypeEnum } from './managers/RenderRangersManager'
+import SizeAndPositionManager from '../managers/SizeAndPositionManager'
+import RenderRangersManager, { ScrollTypeEnum } from '../managers/RenderRangersManager'
 import Background, { BackgroundTypeEnum } from './Background'
 import GridContent from './GridContent'
-import ScrollWrapper from './ScrollWrapper'
+import ScrollableArea from './ScrollableArea'
 
 interface IGridState {
   prevProps: Partial<IGridProps>;
@@ -231,7 +231,7 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
 
   render () {
     const {
-      ScrollComponent = ScrollWrapper,
+      ScrollComponent = ScrollableArea,
       height,
       width,
       children,
@@ -256,6 +256,14 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
         fullHeight={rowManager.fullSize}
         fullWidth={columnManager.fullSize}
       >
+        <div
+          role="scroll-content"
+          style={{
+            height: `${rowManager.fullSize}px`,
+            width: `${columnManager.fullSize}px`,
+            position: 'relative'
+          }}
+        >
         {
           enableBackgroundVerticalLines &&
           (
@@ -294,6 +302,7 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
           rangeRenderer={rangeRenderer}
         />
         { children }
+        </div>
       </ScrollComponent>
     )
   }
