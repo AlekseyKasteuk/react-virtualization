@@ -11,31 +11,30 @@ interface IAutoSizerState {
 
 export default class AutoSizer extends React.PureComponent<IAutoSizerProps, IAutoSizerState> {
   ref: React.RefObject<HTMLDivElement> = React.createRef()
-  timeoutId?: number
-
-  constructor (props: IAutoSizerProps) {
-    super(props)
-    this.state = { width: 0, height: 0 }
-  }
+  private _timeout: number = null
+  state = { width: 0, height: 0 }
 
   componentDidMount () {
-    this.getDivMeasures()
+    this._getSize()
   }
 
-  getDivMeasures = () => {
-    this.timeoutId = window.setTimeout(() => {
-      const { offsetHeight: height = 0, offsetWidth: width = 0 } = this.ref.current || {}
-      if (this.state.height !== height || this.state.width !== width) {
-        this.setState({ width, height }, () => this.getDivMeasures())
-      } else {
-        this.getDivMeasures()
-      }
-    }, 1000 / 60)
+  private _timeoutHandler = () => {
+    this._timeout = window.setTimeout(() => this._getSize(), 1000 / 60)
+  }
+
+  private _getSize = () => {
+    const { offsetHeight: height = 0, offsetWidth: width = 0 } = this.ref.current
+    if (this.state.height !== height || this.state.width !== width) {
+      this.setState({ width, height }, () => this._timeoutHandler())
+    } else {
+      this._timeoutHandler()
+    }
+    
   }
 
   componentWillUnmount () {
-    if (this.timeoutId !== undefined) {
-      clearTimeout(this.timeoutId)
+    if (this._timeout !== null) {
+      clearTimeout(this._timeout)
     }
   }
 

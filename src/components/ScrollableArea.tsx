@@ -5,11 +5,11 @@ import IScrollableAreaProps from '../interfaces/IScrollableAreaProps'
 export default class ScrollableArea extends React.PureComponent<IScrollableAreaProps> {
   ref: React.RefObject<HTMLDivElement> = React.createRef()
 
-  componentDidMount () { this.setPosition() }
+  componentDidMount () { this._setPosition() }
 
-  componentDidUpdate () { this.setPosition() }
+  componentDidUpdate () { this._setPosition() }
 
-  setPosition = () => {
+  private _setPosition = () => {
     if (!this.ref.current) {
       return
     }
@@ -21,7 +21,6 @@ export default class ScrollableArea extends React.PureComponent<IScrollableAreaP
 
   render () {
     const { width, height, onScroll, children, fullWidth, fullHeight } = this.props
-    const child: React.ReactElement = React.Children.only(children)
     return (
       <div
         role="scroll-area"
@@ -35,12 +34,7 @@ export default class ScrollableArea extends React.PureComponent<IScrollableAreaP
         }}
         onScroll={onScroll}
       >
-        {
-          React.cloneElement(
-            child,
-            { style: { ...child.props.style, position: 'relative' } }
-          )
-        }
+        {children}
       </div>
     )
   }
