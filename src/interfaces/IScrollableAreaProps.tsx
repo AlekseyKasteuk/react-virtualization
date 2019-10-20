@@ -7,6 +7,6 @@ export default interface IScrollableAreaProps {
   fullHeight: number;
   scrollTop: number;
   scrollLeft: number;
-  onScroll: (event: React.UIEvent) => void;
+  onScroll: ({ scrollTop, scrollLeft }: { scrollTop: number, scrollLeft: number }) => void;
   children: React.ReactElement;
 }

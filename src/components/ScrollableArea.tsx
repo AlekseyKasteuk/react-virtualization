@@ -19,6 +19,11 @@ export default class ScrollableArea extends React.PureComponent<IScrollableAreaP
     this.ref.current.scrollLeft = scrollLeft
   }
 
+  onScroll = (event: React.UIEvent) => {
+    const { scrollTop, scrollLeft } = event.currentTarget
+    this.props.onScroll({ scrollTop, scrollLeft })
+  }
+
   render () {
     const { width, height, onScroll, children, fullWidth, fullHeight } = this.props
     return (
@@ -32,7 +37,7 @@ export default class ScrollableArea extends React.PureComponent<IScrollableAreaP
           overflowX: width === fullWidth ? 'hidden' : 'auto',
           overflowY: height === fullHeight ? 'hidden' : 'auto',
         }}
-        onScroll={onScroll}
+        onScroll={this.onScroll}
       >
         {children}
       </div>

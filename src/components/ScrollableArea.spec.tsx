@@ -7,9 +7,9 @@ describe('ScrollableArea', () => {
   it('Rendering', () => {
     let scrollLeft: number = 0
     let scrollTop: number = 0
-    const onScroll: (event: React.UIEvent) => void = (event) => {
-      scrollLeft = event.currentTarget.scrollLeft
-      scrollTop = event.currentTarget.scrollTop
+    const onScroll = ({ scrollTop: st, scrollLeft: sl }: { scrollTop: number, scrollLeft: number }): void => {
+      scrollLeft = sl
+      scrollTop = st
     }
     const content = shallow(
       <ScrollableArea

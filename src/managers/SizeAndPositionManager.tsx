@@ -26,8 +26,10 @@ export default class SizeAndPositionManager {
       this._pixelCache = new Map()
       this._indexCache = new IndexCache()
     }
-    if (isFinite(count) || timesToAddFirstly) {
-      this._recalculateFullSize(isFinite(count) ? count - 1 : indexCountToAdd * timesToAddFirstly)
+    if (isFinite(count)) {
+      count && this._recalculateFullSize(count - 1)
+    } else if (timesToAddFirstly) {
+      this._recalculateFullSize(indexCountToAdd * timesToAddFirstly)
     }
   }
 
@@ -39,33 +41,28 @@ export default class SizeAndPositionManager {
     return this._fullSize
   }
 
+  private _getIndex (index: number): number {
+    if (index < 0 || index >= this.count) {
+      debugger
+      throw new Error(`Index ${index} is out of bounds`)
+    }
+    return index
+  }
+
   private _recalculateFullSize (index: number) {
-    index = Math.min(Math.max(Math.floor(index / this._indexCountToAdd) * this._indexCountToAdd, 0), this.count)
+    if (!isFinite(this.count)) {
+      index = Math.floor(index / this._indexCountToAdd) * this._indexCountToAdd
+    }
     if (this._lastCalculatedIndex < index) {
       if (typeof this._size === 'number') {
         this._fullSize = (index + 1) * this._size
       } else {
-        for (let i: number = Math.max(this._lastCalculatedIndex + 1, 0); i <= index; i++) {
+        for (let i: number = this._lastCalculatedIndex + 1; i <= index; i++) {
           this._fullSize += this.getSize(i)
         }
       }
       this._lastCalculatedIndex = index
     }
-  }
-
-  private _getIndex (index: number): number {
-    if (this.count === 0) {
-      throw new Error('Can\'t get index')
-    }
-    if (index < 0) {
-      console.warn('Index is less then 0', index)
-      return 0
-    }
-    if (index >= this.count) {
-      console.warn('Index is greater or equals count', index)
-      return this.count - 1
-    }
-    return index
   }
 
   getSize (index: number): number {
@@ -94,15 +91,19 @@ export default class SizeAndPositionManager {
   }
 
   getIndexByPixel (pixel: number): number {
+    if (pixel < 0 || !this.count || (isFinite(this.count) && pixel > this.fullSize))  {
+      throw new Error('Pixel is out of bounds')
+    }
+
     let index: number
 
     if (typeof this._size === 'number') {
-      index = Math.floor(pixel / this._size)
+      index = Math.min(Math.floor(pixel / this._size), this.count - 1)
     } else {
       index = this._indexCache.get(pixel)
       if (index === -1) {
         const count = Math.max(this._lastCalculatedIndex, 0)
-        index = count * Math.floor(pixel / Math.max(this.fullSize || 1, pixel || 1))
+        index = count * Math.floor(pixel / (this.fullSize || 1))
         while (true) {
           const start = this.getPixelByIndex(index)
           const end = start + this.getSize(index)
@@ -113,7 +114,7 @@ export default class SizeAndPositionManager {
 
           if (pixel < start) {
             index--
-          } else if (pixel >= end) {
+          } else if (pixel >= end && index !== this.count - 1) {
             index++
           } else {
             break
@@ -121,7 +122,6 @@ export default class SizeAndPositionManager {
         }
       }
     }
-    index = this._getIndex(index)
     this._recalculateFullSize(index)
     return index
   }

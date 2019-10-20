@@ -199,9 +199,7 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
     scrollFromProps(this.props, this.state)
   }
 
-  onScroll = (event: React.UIEvent): void => {
-    event.preventDefault()
-    const { scrollTop, scrollLeft } = event.currentTarget
+  onScroll = ({ scrollTop, scrollLeft }: { scrollTop: number, scrollLeft: number }): void => {
 
     const scrollTopDelta: number = this.state.scrollTop - scrollTop
     const rowScrollType: ScrollTypeEnum = scrollTopDelta === 0 ? this.state.rowScrollType : scrollTopDelta < 0 ? ScrollTypeEnum.After : ScrollTypeEnum.Before
