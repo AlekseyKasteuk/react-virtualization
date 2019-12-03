@@ -1,12 +1,13 @@
-import IScrollableAreaProps from "./IScrollableAreaProps"
+import IGridWrapperProps from "./IGridWrapperProps"
 
 import CellRendererType from '../types/CellRendererType'
 import OnScrollType from '../types/OnScrollType'
 import RangeRendererType from '../types/RangeRendererType'
 
 export default interface IGridBaseGridProps {
-  className?: string;
-  ScrollComponent?: React.ComponentType<IScrollableAreaProps>;
+  wrapperClassName?: string;
+  contentClassName?: string;
+  WrapperComponent?: React.ComponentType<IGridWrapperProps>;
   width: number;
   height: number;
   overscanCount?: number;
@@ -15,4 +16,5 @@ export default interface IGridBaseGridProps {
   onScroll?: OnScrollType;
   cellRenderer?: CellRendererType;
   rangeRenderer?: RangeRendererType;
+  hideScrollbars?: boolean;
 }

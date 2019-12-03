@@ -19,7 +19,7 @@ describe('SizeAndPositionManager', () => {
     })
 
     it('Infinite count', () => {
-      const manager = new SizeAndPositionManager(Infinity, size)
+      const manager = new SizeAndPositionManager(Infinity, size, 1, 0)
 
       expect(manager.fullSize).toEqual(0)
 
@@ -28,14 +28,8 @@ describe('SizeAndPositionManager', () => {
 
         expect(manager.getIndexByPixel(i * size)).toEqual(i)
         expect(manager.getIndexByPixel((i + 1) * size - 1)).toEqual(i)
-      }
 
-      for (let i = 0; i < 5; i++) {
-        expect(manager.getPixelByIndex(count + i)).toEqual((count + i) * size)
-        expect(manager.getIndexByPixel((count + i) * size)).toEqual(count + i)
-        expect(manager.getIndexByPixel((count + i + 1) * size - 1)).toEqual(count + i)
-
-        expect(manager.fullSize).toEqual((count + i + 1) * size)
+        expect(manager.fullSize).toEqual((i + 2) * size)
       }
     })
   })
@@ -61,21 +55,19 @@ describe('SizeAndPositionManager', () => {
     })
 
     it('Infinite count', () => {
-      const manager = new SizeAndPositionManager(Infinity, size)
+      const manager = new SizeAndPositionManager(Infinity, size, 1, 0)
 
       expect(manager.fullSize).toEqual(0)
 
+      let pixel = 0
       for (let i = 0; i < count; i++) {
-        let pixel = 0
-        for (let j = 0; j < i; j++) {
-          pixel += size(j)
-        }
         expect(manager.getPixelByIndex(i)).toEqual(pixel)
         
         expect(manager.getIndexByPixel(pixel)).toEqual(i)
         expect(manager.getIndexByPixel(pixel + size(i) - 1)).toEqual(i)
         
-        expect(manager.fullSize).toEqual(pixel + size(i))
+        pixel += size(i)
+        expect(manager.fullSize).toEqual(pixel + size(i + 1))
       }
     })
   })

@@ -7,7 +7,7 @@ import SizeAndPositionManager from '../managers/SizeAndPositionManager'
 import RenderRangersManager, { ScrollTypeEnum } from '../managers/RenderRangersManager'
 import Background, { BackgroundTypeEnum } from './Background'
 import GridContent from './GridContent'
-import ScrollableArea from './ScrollableArea'
+import GridWrapper from './GridWrapper'
 
 interface IGridState {
   prevProps: Partial<IGridProps>;
@@ -229,7 +229,9 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
 
   render () {
     const {
-      ScrollComponent = ScrollableArea,
+      wrapperClassName,
+      contentClassName,
+      WrapperComponent = GridWrapper,
       height,
       width,
       children,
@@ -241,24 +243,28 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
       horizontalBackgroundLinesColor = backgroundLinesColor,
       cellRenderer,
       rangeRenderer,
+      hideScrollbars = false,
     } = this.props
     const { scrollLeft, scrollTop, rowManager, columnManager, rowsRange, columnsRange } = this.state
 
     return (
-      <ScrollComponent
+      <WrapperComponent
+        className={wrapperClassName}
         width={width}
         height={height}
         onScroll={this.onScroll}
         scrollLeft={scrollLeft}
         scrollTop={scrollTop}
-        fullHeight={rowManager.fullSize}
-        fullWidth={columnManager.fullSize}
+        contentHeight={rowManager.fullSize}
+        contentWidth={columnManager.fullSize}
+        hideScrollbars={hideScrollbars}
       >
         <div
+          className={contentClassName}
           role="scroll-content"
           style={{
-            height: `${rowManager.fullSize}px`,
-            width: `${columnManager.fullSize}px`,
+            height: rowManager.fullSize,
+            width: columnManager.fullSize,
             position: 'relative'
           }}
         >
@@ -301,7 +307,7 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
         />
         { children }
         </div>
-      </ScrollComponent>
+      </WrapperComponent>
     )
   }
 }

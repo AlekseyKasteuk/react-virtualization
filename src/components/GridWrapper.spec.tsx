@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { shallow } from 'enzyme'
 
-import ScrollableArea from './ScrollableArea'
+import GridWrapper from './GridWrapper'
 
-describe('ScrollableArea', () => {
+describe('GridWrapper', () => {
   it('Rendering', () => {
     let scrollLeft: number = 0
     let scrollTop: number = 0
@@ -12,17 +12,17 @@ describe('ScrollableArea', () => {
       scrollTop = st
     }
     const content = shallow(
-      <ScrollableArea
+      <GridWrapper
         width={100}
         height={100}
-        fullWidth={200}
-        fullHeight={200}
+        contentWidth={200}
+        contentHeight={200}
         scrollLeft={scrollLeft}
         scrollTop={scrollTop}
         onScroll={onScroll}
       >
         <h1>Test</h1>
-      </ScrollableArea>
+      </GridWrapper>
     )
     const scrollArea = content.find('[role="scroll-area"]')
     scrollArea.simulate('scroll', { currentTarget: { scrollTop: 50, scrollLeft } })

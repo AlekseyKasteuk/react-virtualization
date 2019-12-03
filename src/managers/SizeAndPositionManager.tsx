@@ -16,7 +16,7 @@ export default class SizeAndPositionManager {
     if (count < 0) {
       throw new Error('"count" param must me > 0')
     }
-    if (indexCountToAdd < 1) {
+    if (!isFinite(count) && indexCountToAdd < 1) {
       throw new Error('"indexCountToAdd" param must be >= 1')
     }
     this._count = count;
@@ -43,15 +43,15 @@ export default class SizeAndPositionManager {
 
   private _getIndex (index: number): number {
     if (index < 0 || index >= this.count) {
-      debugger
-      throw new Error(`Index ${index} is out of bounds`)
+      console.warn(`Index ${index} is out of bounds`)
+      index = Math.max(0, Math.min(index, this.count - 1))
     }
     return index
   }
 
   private _recalculateFullSize (index: number) {
     if (!isFinite(this.count)) {
-      index = Math.floor(index / this._indexCountToAdd) * this._indexCountToAdd
+      index = Math.floor(index / this._indexCountToAdd + 1) * this._indexCountToAdd
     }
     if (this._lastCalculatedIndex < index) {
       if (typeof this._size === 'number') {
@@ -92,7 +92,8 @@ export default class SizeAndPositionManager {
 
   getIndexByPixel (pixel: number): number {
     if (pixel < 0 || !this.count || (isFinite(this.count) && pixel > this.fullSize))  {
-      throw new Error('Pixel is out of bounds')
+      console.warn(`Pixel ${pixel} is out of bounds`)
+      pixel = Math.max(0, Math.min(pixel, this.fullSize))
     }
 
     let index: number
@@ -102,8 +103,7 @@ export default class SizeAndPositionManager {
     } else {
       index = this._indexCache.get(pixel)
       if (index === -1) {
-        const count = Math.max(this._lastCalculatedIndex, 0)
-        index = count * Math.floor(pixel / (this.fullSize || 1))
+        index = Math.max(this._lastCalculatedIndex - 1, 0)
         while (true) {
           const start = this.getPixelByIndex(index)
           const end = start + this.getSize(index)
