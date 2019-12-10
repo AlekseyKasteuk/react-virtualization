@@ -7,6 +7,6 @@ export default interface IVerticalListProps extends IGridBaseProps {
   scrollTop?: number;
   rowCount?: number;
   rowHeight?: SizeType;
-  rowManager?: SizeAndPositionManager;
+  rowSizeAndPositionManager?: SizeAndPositionManager;
   rowsCountToAdd?: number;
 }

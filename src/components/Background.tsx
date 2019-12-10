@@ -2,85 +2,87 @@ import * as React from 'react'
 
 import range from '../utils/range'
 
-import RangeType from '../types/RangeType'
 import SizeAndPositionManager from '../managers/SizeAndPositionManager'
 
-export enum BackgroundTypeEnum {
+const MAX_CANVAS_SIZE = 8000
+
+export enum BackgroundType {
   Vertical = 'vertical',
   Horizontal = 'horizontal',
 }
 
 interface IBackgroundProps {
   manager: SizeAndPositionManager;
-  range: RangeType;
-  type: BackgroundTypeEnum;
+  startPixel: number;
+  endPixel: number;
+  type: BackgroundType;
   color: string;
-  width: number;
-  height: number;
-  top: number;
-  left: number;
 }
 
+const canvas = document.createElement('canvas')
+
 export default class Background extends React.PureComponent<IBackgroundProps> {
-  canvas = document.createElement('canvas')
+  _maxIndex: number = 0
+  _maxSize: number = 0
+  _color: string
+  _manager: SizeAndPositionManager
+  _backgrounds: string[] = []
 
-  constructor (props: IBackgroundProps) {
-    super(props)
-    if (props.type === BackgroundTypeEnum.Horizontal) {
-      this.canvas.width = 1
-    } else {
-      this.canvas.height = 1
+  getBackgrounds = (): React.CSSProperties[] => {
+    const { type, manager, startPixel, endPixel, color } = this.props
+    if (this._color !== color || manager !== this._manager) {
+      this._backgrounds = []
     }
-    this.canvas.height = props.type === BackgroundTypeEnum.Horizontal ? props.height : 1
-    this.canvas.width = props.type === BackgroundTypeEnum.Horizontal ? 1 : props.width
-  }
-
-  private _getBackground = (): string => {
-    const { type, manager, range: { start, end }, color, width, height } = this.props
-    const isHirizontal = type === BackgroundTypeEnum.Horizontal
-
-    this.canvas.height = isHirizontal ? height : 1
-    this.canvas.width = isHirizontal ? 1 : width
-    const context = this.canvas.getContext('2d')
-    if (start >= end || !context) {
-      return ''
+    if (this._maxSize !== manager.fullSize) {
+      this._backgrounds[this._maxIndex] = undefined
+      this._maxIndex = Math.trunc(manager.fullSize / MAX_CANVAS_SIZE)
+      this._maxSize = manager.fullSize
     }
-    context.fillStyle = color
-    const delta = manager.getPixelByIndex(start)
-    for (let index of range(start, end)) {
-      const size = manager.getSize(index)
-      if (!size) { continue }
+    const startIndex = Math.trunc(startPixel / MAX_CANVAS_SIZE)
+    const endIndex = Math.trunc(endPixel / MAX_CANVAS_SIZE)
 
-      const startPixel = manager.getPixelByIndex(index) - 1
-      const endPixel = manager.getPixelByIndex(index) + size - 1
-      
-      isHirizontal ? context.fillRect(0, startPixel - delta, 1, 1) : context.fillRect(startPixel - delta, 0, 1, 1)
-      isHirizontal ? context.fillRect(0, endPixel - delta, 1, 1) : context.fillRect(endPixel - delta, 0, 1, 1)
+    const isHorizontal = type === BackgroundType.Horizontal
+
+    const backgrounds = []
+
+    for (let index = startIndex; index <= endIndex; index++) {
+      const pixel = MAX_CANVAS_SIZE * index
+      const size = Math.min(this._maxSize, MAX_CANVAS_SIZE * (index + 1)) - pixel
+      if (!this._backgrounds[index]) {
+        canvas.height = isHorizontal ? size : 1
+        canvas.width = !isHorizontal ? size : 1
+        const context = canvas.getContext('2d')
+        context.fillStyle = color
+        const startIndex = manager.getIndexByPixel(pixel)
+        const endIndex = manager.getIndexByPixel(pixel + size)
+        for (let index = startIndex + 1; index <= endIndex; index++) {
+          const position = manager.getPixelByIndex(index) - pixel - 1
+          isHorizontal ? context.fillRect(0, position, 1, 1) : context.fillRect(position, 0, 1, 1)
+        }
+        
+        this._backgrounds[index] = canvas.toDataURL()
+      }
+
+      backgrounds.push({
+        position: 'absolute',
+        top: !isHorizontal ? 0 : pixel,
+        height: !isHorizontal ? '100%' : size,
+        left: isHorizontal ? 0 : pixel,
+        width: isHorizontal ? '100%' : size,
+        background: `url(${this._backgrounds[index]})`
+      })
     }
-    
-    return `url(${this.canvas.toDataURL()})`
-  }
-
-  componentWillUnmount () {
-    this.canvas.remove()
+    return backgrounds
   }
 
   render () {
-    const { type, width, height, top, left } = this.props
-    return (
+    const { type } = this.props
+    return this.getBackgrounds().map((style) => (
       <div
-       className={type}
-        style={{
-          position: 'absolute',
-          pointerEvents: 'none',
-          zIndex: -1,
-          width: `${width}px`,
-          height: `${height}px`,
-          top: `${top}px`,
-          left: `${left}px`,
-          background: this._getBackground(),
-        }}
+        key={type === BackgroundType.Vertical ? `${style.left}-${style.width}` : `${style.top}-${style.height}`}
+        className={type}
+        style={style}
       />
-    )
+    ))
   }
 }

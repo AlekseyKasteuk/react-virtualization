@@ -1,12 +1,13 @@
 import IGridWrapperProps from "./IGridWrapperProps"
 
 import CellRendererType from '../types/CellRendererType'
-import OnScrollType from '../types/OnScrollType'
 import RangeRendererType from '../types/RangeRendererType'
+import OnOffsetAdjustmentChangeType from '../types/OnOffsetAdjustmentChangeType'
+import OnScrollType from '../types/OnScrollType'
 
 export default interface IGridBaseGridProps {
-  wrapperClassName?: string;
-  contentClassName?: string;
+  id?: string;
+  className?: string;
   WrapperComponent?: React.ComponentType<IGridWrapperProps>;
   width: number;
   height: number;
@@ -16,5 +17,7 @@ export default interface IGridBaseGridProps {
   onScroll?: OnScrollType;
   cellRenderer?: CellRendererType;
   rangeRenderer?: RangeRendererType;
-  hideScrollbars?: boolean;
+  verticalOffsetAdjustment?: number;
+  horizontalOffsetAdjustment?: number;
+  onOffsetAdjustmentChange?: OnOffsetAdjustmentChangeType
 }

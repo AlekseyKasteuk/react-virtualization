@@ -1,14 +1,15 @@
 import * as React from 'react'
 
 import IGridWrapperProps from '../interfaces/IGridWrapperProps'
-
 interface IState {
   extraHeight: number;
   extraWidth: number;
 }
 
 export default class GridWrapper extends React.PureComponent<IGridWrapperProps, IState> {
-  ref: React.RefObject<HTMLDivElement> = React.createRef()
+  _scrollingContainer: React.RefObject<HTMLDivElement> = React.createRef()
+  _skipScroll: boolean = false
+  
   state = {
     extraHeight: 0,
     extraWidth: 0,
@@ -19,43 +20,77 @@ export default class GridWrapper extends React.PureComponent<IGridWrapperProps, 
   componentDidUpdate () { this._setPosition() }
 
   private _setPosition = () => {
-    if (!this.ref.current) {
+    if (!this._scrollingContainer.current) {
       return
     }
-    const { scrollTop, scrollLeft, hideScrollbars } = this.props
+    const { scrollTop, scrollLeft, hideScrollbars, onOffsetAdjustmentChange } = this.props
 
-    this.ref.current.scrollTop = scrollTop
-    this.ref.current.scrollLeft = scrollLeft
+    const scrollTopChanged = this._scrollingContainer.current.scrollTop !== scrollTop
+    const scrollLeftChanged = this._scrollingContainer.current.scrollLeft !== scrollLeft
+    if (scrollTopChanged || scrollLeftChanged) {
+      this._skipScroll = scrollTopChanged === scrollLeftChanged
+      if (scrollTopChanged) {
+        this._scrollingContainer.current.scrollTop = scrollTop
+      }
+      if (scrollLeftChanged) {
+        this._scrollingContainer.current.scrollLeft = scrollLeft
+      }
+    }
 
-    const extraHeight = hideScrollbars ? this.ref.current.offsetHeight - this.ref.current.clientHeight : 0
-    const extraWidth = hideScrollbars ? this.ref.current.offsetWidth - this.ref.current.clientWidth : 0
+    const extraHeight = this._scrollingContainer.current.offsetHeight - this._scrollingContainer.current.clientHeight
+    const extraWidth = this._scrollingContainer.current.offsetWidth - this._scrollingContainer.current.clientWidth
     if (this.state.extraHeight !== extraHeight || this.state.extraWidth !== extraWidth) {
-      this.setState({ extraHeight, extraWidth })
+      this.setState(
+        { extraHeight, extraWidth },
+        () => {
+          if (onOffsetAdjustmentChange && !hideScrollbars) {
+            onOffsetAdjustmentChange({ vertical: extraHeight, horizontal: extraWidth })
+          }
+        }
+      )
     }
   }
 
-  onScroll = (event: React.UIEvent) => {
-    const { scrollTop, scrollLeft } = event.currentTarget
-    this.props.onScroll({ scrollTop, scrollLeft })
+  _onScroll = (event: React.UIEvent) => {
+    if (event.target === this._scrollingContainer.current) {
+      if (this._skipScroll) {
+        this._skipScroll = false
+      } else {
+        const { scrollTop, scrollLeft } = event.currentTarget
+        this.props.onScroll({ scrollTop, scrollLeft })
+      }
+    }
   }
 
   render () {
-    const { width, height, children, hideScrollbars } = this.props
+    const { width, height, children, hideScrollbars, contentHeight, contentWidth } = this.props
     const { extraHeight, extraWidth } = this.state
+    const verticalOffset = hideScrollbars ? extraHeight : 0
+    const horizontalOffset = hideScrollbars ? extraWidth : 0
     const content = (
       <div
         role="scroll-area"
-        ref={this.ref}
+        ref={this._scrollingContainer}
         style={{
-          height: height + extraHeight,
-          width: width + extraWidth,
+          height: height + verticalOffset,
+          width: width + horizontalOffset,
           overflow: 'auto',
-          marginBottom: -extraHeight,
-          marginRight: -extraWidth,
+          marginBottom: -verticalOffset,
+          marginRight: -horizontalOffset,
+          WebkitOverflowScrolling: 'touch',
         }}
-        onScroll={this.onScroll}
+        onScroll={this._onScroll}
       >
-        {children}
+        <div
+          role="scroll-content"
+          style={{
+            height: contentHeight,
+            width: contentWidth,
+            position: 'relative'
+          }}
+        >
+          {children}
+        </div>
       </div>
     )
     if (hideScrollbars) {

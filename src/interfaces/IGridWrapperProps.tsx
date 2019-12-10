@@ -1,6 +1,8 @@
-import SizeAndPositionManager from '../managers/SizeAndPositionManager'
+import OnOffsetAdjustmentChangeType from '../types/OnOffsetAdjustmentChangeType'
+import OnScrollType from '../types/OnScrollType'
 
 export default interface IGridWrapperProps {
+  id?: string;
   className?: string;
   width: number;
   height: number;
@@ -8,7 +10,8 @@ export default interface IGridWrapperProps {
   contentHeight: number;
   scrollTop: number;
   scrollLeft: number;
-  onScroll: ({ scrollTop, scrollLeft }: { scrollTop: number, scrollLeft: number }) => void;
-  children: React.ReactElement;
+  onScroll: OnScrollType;
+  children: React.ReactNode;
   hideScrollbars?: boolean;
+  onOffsetAdjustmentChange?: OnOffsetAdjustmentChangeType;
 }

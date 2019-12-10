@@ -7,6 +7,6 @@ export default interface IHorizontalListProps extends IGridBaseProps {
   scrollLeft?: number;
   columnCount?: number;
   columnWidth?: SizeType;
-  columnManager?: SizeAndPositionManager;
+  columnSizeAndPositionManager?: SizeAndPositionManager;
   columnsCountToAdd?: number;
 }

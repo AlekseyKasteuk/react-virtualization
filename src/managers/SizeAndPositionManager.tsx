@@ -125,4 +125,11 @@ export default class SizeAndPositionManager {
     this._recalculateFullSize(index)
     return index
   }
+
+   getRangeSize (startIndex: number, endIndex: number): number {
+     const startPixel = this.getPixelByIndex(startIndex)
+     const endPixel = this.getPixelByIndex(endIndex)
+     const endIndexSize = this.getSize(endIndex)
+     return endPixel - startPixel + endIndexSize
+   }
 }
