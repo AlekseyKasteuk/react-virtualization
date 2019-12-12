@@ -8,7 +8,6 @@ interface IState {
 
 export default class GridWrapper extends React.PureComponent<IGridWrapperProps, IState> {
   _scrollingContainer: React.RefObject<HTMLDivElement> = React.createRef()
-  _skipScroll: boolean = false
   
   state = {
     extraHeight: 0,
@@ -28,13 +27,7 @@ export default class GridWrapper extends React.PureComponent<IGridWrapperProps, 
     const scrollTopChanged = this._scrollingContainer.current.scrollTop !== scrollTop
     const scrollLeftChanged = this._scrollingContainer.current.scrollLeft !== scrollLeft
     if (scrollTopChanged || scrollLeftChanged) {
-      this._skipScroll = scrollTopChanged === scrollLeftChanged
-      if (scrollTopChanged) {
-        this._scrollingContainer.current.scrollTop = scrollTop
-      }
-      if (scrollLeftChanged) {
-        this._scrollingContainer.current.scrollLeft = scrollLeft
-      }
+      this._scrollingContainer.current.scrollTo(scrollLeft, scrollTop)
     }
 
     const extraHeight = this._scrollingContainer.current.offsetHeight - this._scrollingContainer.current.clientHeight
@@ -53,12 +46,8 @@ export default class GridWrapper extends React.PureComponent<IGridWrapperProps, 
 
   _onScroll = (event: React.UIEvent) => {
     if (event.target === this._scrollingContainer.current) {
-      if (this._skipScroll) {
-        this._skipScroll = false
-      } else {
-        const { scrollTop, scrollLeft } = event.currentTarget
-        this.props.onScroll({ scrollTop, scrollLeft })
-      }
+      const { scrollTop, scrollLeft } = event.currentTarget
+      this.props.onScroll({ scrollTop, scrollLeft })
     }
   }
 
@@ -74,7 +63,8 @@ export default class GridWrapper extends React.PureComponent<IGridWrapperProps, 
         style={{
           height: height + verticalOffset,
           width: width + horizontalOffset,
-          overflow: 'auto',
+          overflowX: contentWidth > width ? 'scroll' : 'hidden',
+          overflowY: contentHeight > height ? 'scroll' : 'hidden',
           marginBottom: -verticalOffset,
           marginRight: -horizontalOffset,
           WebkitOverflowScrolling: 'touch',
