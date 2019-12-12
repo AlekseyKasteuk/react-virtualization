@@ -19,8 +19,6 @@ interface IBackgroundProps {
   color: string;
 }
 
-const canvas = document.createElement('canvas')
-
 export default class Background extends React.PureComponent<IBackgroundProps> {
   _maxIndex: number = 0
   _maxSize: number = 0
@@ -30,11 +28,13 @@ export default class Background extends React.PureComponent<IBackgroundProps> {
 
   getBackgrounds = (): React.CSSProperties[] => {
     const { type, manager, startPixel, endPixel, color } = this.props
-    if (this._color !== color || manager !== this._manager) {
+    if (this._color !== color || this._manager !== manager) {
+      this._color = color
+      this._manager = manager
       this._backgrounds = []
     }
     if (this._maxSize !== manager.fullSize) {
-      this._backgrounds[this._maxIndex] = undefined
+      this._backgrounds.pop()
       this._maxIndex = Math.trunc(manager.fullSize / MAX_CANVAS_SIZE)
       this._maxSize = manager.fullSize
     }
@@ -49,6 +49,7 @@ export default class Background extends React.PureComponent<IBackgroundProps> {
       const pixel = MAX_CANVAS_SIZE * index
       const size = Math.min(this._maxSize, MAX_CANVAS_SIZE * (index + 1)) - pixel
       if (!this._backgrounds[index]) {
+        const canvas = document.createElement('canvas')
         canvas.height = isHorizontal ? size : 1
         canvas.width = !isHorizontal ? size : 1
         const context = canvas.getContext('2d')
@@ -61,6 +62,7 @@ export default class Background extends React.PureComponent<IBackgroundProps> {
         }
         
         this._backgrounds[index] = canvas.toDataURL()
+        canvas.remove()
       }
 
       backgrounds.push({
