@@ -13,9 +13,7 @@ export const requestAnimationTimeout = (callback: Function, delay: number): Anim
 
   const timeout = () => {
     const now = Date.now()
-    console.log(now - start, delay)
     if (now - start >= delay) {
-      console.log('!!!', now - start, delay)
       callback()
     } else {
       frame.id = raf(timeout)

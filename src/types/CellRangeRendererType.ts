@@ -1,6 +1,6 @@
 import RendererParamsType from './RendererParamsType'
 
-interface RangeRendererParamsType extends RendererParamsType {
+interface CellRangeRendererParamsType extends RendererParamsType {
   columnStartIndex: number;
   columnStopIndex: number;
   rowStartIndex: number;
@@ -14,6 +14,6 @@ interface RangeRendererParamsType extends RendererParamsType {
   verticalOffsetAdjustment: number;
 }
 
-type RangeRendererType = (props: RangeRendererParamsType) => React.ReactNode
+type CellRangeRendererType = (props: CellRangeRendererParamsType) => React.ReactNode
 
-export default RangeRendererType
+export default CellRangeRendererType

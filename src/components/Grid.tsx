@@ -3,7 +3,7 @@ import * as React from 'react'
 import IGridProps from "../interfaces/IGridProps"
 
 import SizeAndPositionManager from '../managers/SizeAndPositionManager'
-import { caf, raf } from '../utils/animationFrame'
+import { requestAnimationTimeout, cancelAnimationTimeout, AnimationTimeoutId } from '../utils/requestAnimationTimeout'
 import Background, { BackgroundType } from './Background'
 import Cells from './Cells'
 import GridWrapper from './GridWrapper'
@@ -150,22 +150,32 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
     }
   }
 
-  _scrollTimeoutId: number
+  _scrollTimeoutId: AnimationTimeoutId
 
   componentDidMount () {
     this._scrollToCoordinates()
   }
 
-  componentDidUpdate (prevProps) {
-    this._scrollToCoordinates(prevProps)
+  componentDidUpdate (prevProps: IGridProps, prevState: IGridState) {
+    if (!this.state.isScrolling && !this._scrollToCoordinates(prevProps)) {
+      if (
+        (this.props.scrollTop !== undefined && this.props.scrollTop !== prevProps.scrollTop) || 
+        (this.props.scrollLeft !== undefined && this.props.scrollLeft !== prevProps.scrollLeft)
+      ) {
+        this.onScroll({ scrollLeft: this.props.scrollLeft, scrollTop: this.props.scrollTop }, ScrollChangeReason.Observed)
+      } else if (
+        this.props.onScroll &&
+        (this.state.scrollTop !== prevState.scrollTop || this.state.scrollLeft !== prevState.scrollLeft)
+      ) {
+        this.props.onScroll({ scrollTop: this.state.scrollTop, scrollLeft: this.state.scrollLeft })
+      }
+    }
   }
 
-  _scrollToCoordinates = (prevProps?: IGridProps) => {
+  _scrollToCoordinates = (prevProps?: IGridProps): boolean => {
     const { width, height } = this.props
     const { columnSizeAndPositionManager, rowSizeAndPositionManager } = this.state
     const { scrollLeft, scrollTop } = this.state
-    const scrollCoordinates: { scrollLeft: number, scrollTop: number } = { scrollLeft, scrollTop }
-    let scrollChangeReason: ScrollChangeReason
 
     const scrollToRowChanged = (
       this.props.scrollToRow !== undefined &&
@@ -176,6 +186,7 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
       (!prevProps || this.props.scrollToColumn !== prevProps.scrollToColumn)
     )
     if (scrollToRowChanged || scrollToColumnChange) {
+      const scrollCoordinates: { scrollLeft: number, scrollTop: number } = { scrollLeft, scrollTop }
       if (scrollToRowChanged) {
         const top = rowSizeAndPositionManager.getPixelByIndex(this.props.scrollToRow)
         if (scrollTop > top) {
@@ -198,18 +209,15 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
           }
         }
       }
-      scrollChangeReason = this.props.onScroll ? ScrollChangeReason.Requested : ScrollChangeReason.Observed
-    } else if (prevProps && (this.props.scrollTop !== prevProps.scrollTop || this.props.scrollLeft !== prevProps.scrollLeft)) {
-      scrollCoordinates.scrollTop = this.props.scrollTop || 0
-      scrollCoordinates.scrollLeft = this.props.scrollLeft || 0
-      scrollChangeReason = ScrollChangeReason.Observed
+      this.onScroll(scrollCoordinates, ScrollChangeReason.Requested)
+      return true
     }
-    this.onScroll(scrollCoordinates, scrollChangeReason)
+    return false
   }
 
   _debounceScrollEnded = () => {
     if (this._scrollTimeoutId !== undefined) {
-      caf(this._scrollTimeoutId)
+      cancelAnimationTimeout(this._scrollTimeoutId)
       this._scrollTimeoutId = undefined
     }
   }
@@ -222,39 +230,49 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
     if (this.state.scrollTop === scrollTop && this.state.scrollLeft === scrollLeft) {
       return
     }
-    if (scrollChangeReason) {
-      this._imediateScroll(scrollTop, scrollLeft, scrollChangeReason)
-    } else {
-      this._handleScroll(scrollTop, scrollLeft)
-    }
-  }
-
-  _imediateScroll = (scrollTop: number, scrollLeft: number, scrollChangeReason?: ScrollChangeReason) => {
-    if (scrollChangeReason === ScrollChangeReason.Requested) {
+    if (scrollChangeReason === undefined || scrollChangeReason === ScrollChangeReason.Requested) {
       if (this.props.onScroll) {
         this.props.onScroll({ scrollTop, scrollLeft })
       }
-    } else {
-      const rowScrollDirection: ScrollDirection = getScrollDirection(this.state.scrollTop, scrollTop, this.state.rowScrollDirection)
-      const columnScrollDirection: ScrollDirection = getScrollDirection(this.state.scrollLeft, scrollLeft, this.state.columnScrollDirection)
-  
-      this.setState(
-        { scrollTop, scrollLeft, rowScrollDirection, columnScrollDirection },
-        () => {
-          if (scrollChangeReason !== ScrollChangeReason.Observed && this.props.onScroll) {
-            this.props.onScroll({ scrollTop, scrollLeft })
-          }
-        }
-      )
     }
+    if (scrollChangeReason === undefined || scrollChangeReason === ScrollChangeReason.Observed) {
+      this._imediateScroll(scrollTop, scrollLeft)
+    }
+    // this.setState(
+    //   {isScrolling: true },
+    //   () => {
+    //     if (this.props.onScroll) {
+    //       this.props.onScroll({ scrollTop, scrollLeft })
+    //     }
+    //     this._handleScroll(scrollTop, scrollLeft)
+    //   }
+    // )
   }
 
+  _imediateScroll = (scrollTop: number, scrollLeft: number) => {
+    const rowScrollDirection: ScrollDirection = getScrollDirection(this.state.scrollTop, scrollTop, this.state.rowScrollDirection)
+    const columnScrollDirection: ScrollDirection = getScrollDirection(this.state.scrollLeft, scrollLeft, this.state.columnScrollDirection)
+
+    this.setState({ scrollTop, scrollLeft, rowScrollDirection, columnScrollDirection, isScrolling: false })
+  }
+
+  _scrollTop: number 
+  _scrollLeft: number 
+
   _handleScroll = (scrollTop, scrollLeft): void => {
-    this._debounceScrollEnded()
-    this._scrollTimeoutId = raf(() => {
-      this._scrollTimeoutId = undefined
-      this._imediateScroll(scrollTop, scrollLeft)
-    })
+    // this._debounceScrollEnded()
+    this._scrollTop = scrollTop
+    this._scrollLeft = scrollLeft
+    if (!this._scrollTimeoutId) {
+      this._scrollTimeoutId = requestAnimationTimeout(
+        () => {
+          console.log(this.props.id, this._scrollTop, this._scrollLeft)
+          this._imediateScroll(this._scrollTop, this._scrollLeft)
+          this._scrollTimeoutId = undefined
+        },
+        150
+      )
+    }
   }
 
   setOffsetAdjustment = (
@@ -357,8 +375,8 @@ export default class Grid extends React.PureComponent<IGridProps, IGridState> {
           enableBackgroundHorizontalLines && (
             <Background
               manager={rowSizeAndPositionManager}
-              startPixel={rowSizeAndPositionManager.getPixelByIndex(columnStartIndex)}
-              endPixel={rowSizeAndPositionManager.getPixelByIndex(columnStopIndex) + rowSizeAndPositionManager.getSize(columnStopIndex)}
+              startPixel={rowSizeAndPositionManager.getPixelByIndex(rowStartIndex)}
+              endPixel={rowSizeAndPositionManager.getPixelByIndex(rowStopIndex) + rowSizeAndPositionManager.getSize(rowStopIndex)}
               type={BackgroundType.Horizontal}
               color={horizontalBackgroundLinesColor}
             />
