@@ -1,0 +1,42 @@
+{
+  "name": "react-virtualization-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server --mode development --hot --host 0.0.0.0",
+    "prod": "webpack-dev-server --mode production --host 0.0.0.0",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlekseyKasteuk/react-virtualization.git"
+  },
+  "keywords": [
+    "react",
+    "virtualization"
+  ],
+  "author": "Aleksey Kasteuk",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AlekseyKasteuk/react-virtualization/issues"
+  },
+  "homepage": "https://github.com/AlekseyKasteuk/react-virtualization#readme",
+  "dependencies": {
+    "react": "^16.10.2",
+    "react-custom-scrolling": "file:../react-custom-scrolling",
+    "react-dom": "^16.10.2",
+    "react-virtualization": "file:../react-virtualization"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.9",
+    "@types/react-dom": "^16.9.2",
+    "awesome-typescript-loader": "^5.2.1",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "typescript": "^3.6.4",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.2"
+  }
+}
