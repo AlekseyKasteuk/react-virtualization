@@ -1,228 +1,113 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import { AutoSizer, Grid, SizeAndPositionManager, List, HorizontalList, GridWrapper } from 'react-virtualization'
+import * as React from 'react';
+import { createRoot } from 'react-dom/client';
+import { Grid, SizeAndPositionManager, List, HorizontalList, CellRendererType } from 'react-virtualization';
+import useResizeObserver from '@react-hook/resize-observer';
 
-import { SelectedCellType } from './types'
+import SelectedCellContext from './apps/SelectedCellContext';
 
-import SelectedCell from './apps/SelectedCell'
-import SelectedCellContext from './apps/SelectedCellContext'
-
-interface ITestComponentState {
-  selectedCell?: SelectedCellType;
-  rowSizeAndPositionManager: SizeAndPositionManager;
-  columnSizeAndPositionManager: SizeAndPositionManager;
-  scrollTop: number;
-  scrollLeft: number;
-  verticalOffsetAdjustment: number;
-  horizontalOffsetAdjustment: number;
+const useSize = (target: React.MutableRefObject<HTMLDivElement>) => {
+  const [size, setSize] = React.useState({ width: 0, height: 0 });
+  useResizeObserver(target, (entry) => setSize(entry.contentRect))
+  return size
 }
 
-const CustomGridWrapper = (props: any) =>
-  <GridWrapper
-    {...props}
-    hideScrollbars
-  />
+const HORIZONTAL_SCROLL_ID = Symbol('HORIZONTAL_SCROLL_ID');
+const VERTICAL_SCROLL_ID = Symbol('VERTICAL_SCROLL_ID');
 
-class TestComponent extends React.PureComponent<{}, ITestComponentState> {
-  state: ITestComponentState = {
-    selectedCell: null,
-
-    rowSizeAndPositionManager: new SizeAndPositionManager(Infinity, (index) => index % 2 === 0 ? 40 : 80, 100),
-    columnSizeAndPositionManager: new SizeAndPositionManager(Infinity, (index) => (index % 10) * 10 + 40, 100),
-
-    // rowSizeAndPositionManager: new SizeAndPositionManager(5, (index) => index % 2 === 0 ? 40 : 50),
-    // columnSizeAndPositionManager: new SizeAndPositionManager(5, (index) => (index % 10) * 10 + 40),
-
-    // rowSizeAndPositionManager: new SizeAndPositionManager(100, 60),
-    // columnSizeAndPositionManager: new SizeAndPositionManager(100, 80),
-
-    scrollTop: 0,
-    scrollLeft: 0,
-    verticalOffsetAdjustment: 0,
-    horizontalOffsetAdjustment: 0,
+const cellRenderer: CellRendererType = ({ rowIndex, columnIndex, rowSizeAndPositionManager, columnSizeAndPositionManager }) => {
+  const key = `${rowIndex}-${columnIndex}`;
+  const style: React.CSSProperties = {
+    position: 'absolute',
+    top: rowSizeAndPositionManager.getOffset(rowIndex),
+    height: rowSizeAndPositionManager.getSize(rowIndex),
+    left: columnSizeAndPositionManager.getOffset(columnIndex),
+    width: columnSizeAndPositionManager.getSize(columnIndex),
+    boxSizing: 'border-box',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: '#ccc',
+    borderStyle: 'solid',
+    borderBottomWidth: 1,
+    borderRightWidth: 1,
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
   }
+  return <div key={key} style={style}>{key}</div>
+}
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
-    alert(error.message)
-  }
+const TestComponent: React.FC<{}> = () => {
+  const [selectedCell, setSelectedCell] = React.useState(null);
+  const [{ scrollLeft, scrollTop }, setScrollState] = React.useState({ scrollLeft: 0, scrollTop: 0 });
+  const rowSizeAndPositionManager = React.useMemo(() => new SizeAndPositionManager(200, (index: number) => index % 2 === 0 ? 40 : 80), [])
+  const columnSizeAndPositionManager = React.useMemo(() => new SizeAndPositionManager(200, (index: number) => index % 2 === 0 ? 40 : 80), [])
 
-  changeSelectedCellCoords = ({ x = 0, y = 0 }: { x?: number, y?: number }) => {
-    if (this.state.selectedCell) {
-      const { rowSizeAndPositionManager, columnSizeAndPositionManager } = this.state
-      const { rowIndex, columnIndex } = this.state.selectedCell
-      const newRowIndex = Math.min(Math.max(0, Math.min(rowSizeAndPositionManager.count, rowIndex - y)), rowSizeAndPositionManager.count - 1)
-      const newColumnIndex = Math.min(Math.max(0, Math.min(columnSizeAndPositionManager.count, columnIndex - x)), columnSizeAndPositionManager.count - 1)
-      if (newRowIndex !== rowIndex || newColumnIndex !== columnIndex) {
-        this.setState({ selectedCell: { rowIndex: newRowIndex, columnIndex: newColumnIndex } })
-      }
-    }
-  }
+  const ref = React.useRef(null);
+  const { width, height } = useSize(ref);
+
   
-  onKeyPress = (event: React.KeyboardEvent) => {
-    if ([27, 37, 38, 39, 40].indexOf(event.keyCode) > -1) {
-      event.preventDefault()
-    }
-    switch (event.keyCode) {
-      case 27: return this.setState({ selectedCell: null })
-      case 37: return this.changeSelectedCellCoords({ x: 1 })
-      case 38: return this.changeSelectedCellCoords({ y: 1 })
-      case 39: return this.changeSelectedCellCoords({ x: -1 })
-      case 40: return this.changeSelectedCellCoords({ y: -1 })
-    }
-  }
+  const onHorizontalScroll = React.useCallback(({ scrollLeft }: { scrollLeft: number }) => setScrollState(({ scrollTop }) => ({ scrollLeft, scrollTop })), [])
+  const onVerticalScroll = React.useCallback(({ scrollTop }: { scrollTop: number }) => setScrollState(({ scrollLeft }) => ({ scrollLeft, scrollTop })), [])
+  const onScroll = React.useCallback(({ scrollTop, scrollLeft }: { scrollTop: number, scrollLeft: number }) => setScrollState({ scrollLeft, scrollTop }), [])
 
-  listCellRenderer = ({ key, rowIndex, style }: { key: string, rowIndex: number, style: React.CSSProperties }) => {
-    return (
-      <div
-        key={key}
-        style={{
-          ...style,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderRight: '1px solid #aaa',
-          borderBottom: '1px solid #ccc',
-        }}
-      >{rowIndex}</div>
-    )
-  }
-
-  horizontalCellRenderer = ({ key, columnIndex, style }: { key: string, rowIndex: number, columnIndex: number, style: React.CSSProperties }) => {
-    return (
-      <div
-        key={key}
-        style={{
-          ...style,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderRight: '1px solid #ccc',
-          borderBottom: '1px solid #aaa',
-        }}
-      >{columnIndex}</div>
-    )
-  }
-
-  cellRenderer = ({ key, rowIndex, columnIndex, style }: { key: string, rowIndex: number, columnIndex: number, style: React.CSSProperties }) => {
-    return (
-      <div
-        key={key}
-        style={{
-          ...style,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          // borderRight: '1px solid #ccc',
-          // borderBottom: '1px solid #ccc',
-        }}
-        onClick={() => {
-          this.setState({ selectedCell: { rowIndex, columnIndex } })
-        }}
-      >{rowIndex}-{columnIndex}</div>
-    )
-  }
-
-  rangeRenderer = (props: any) => {
-    return (<SelectedCell {...props} />)
-  }
-
-  onScroll = (
-    { scrollLeft = this.state.scrollLeft, scrollTop = this.state.scrollTop }:
-    { scrollLeft: number, scrollTop: number }
-  ): void => {
-    if (scrollLeft !== this.state.scrollLeft || scrollTop !== this.state.scrollTop) {
-      this.setState({ scrollLeft, scrollTop })
-    }
-  }
-
-  onOffsetAdjustmentChange = ({ vertical, horizontal }: { vertical: number, horizontal: number }) => {
-    const { horizontalOffsetAdjustment, verticalOffsetAdjustment } = this.state
-    if (vertical !== verticalOffsetAdjustment || horizontal !== horizontalOffsetAdjustment) {
-      this.setState({ horizontalOffsetAdjustment: horizontal, verticalOffsetAdjustment: vertical })
-    }
-  }
-  
-  render () {
-    const {
-      rowSizeAndPositionManager,
-      columnSizeAndPositionManager,
-      scrollLeft,
-      scrollTop,
-      horizontalOffsetAdjustment,
-      verticalOffsetAdjustment,
-    } = this.state
-    const { rowIndex, columnIndex } = this.state.selectedCell || {}
-    return (
-      <AutoSizer
-        onKeyDown={this.onKeyPress}
-      >
-        {
-          ({ width, height }) => (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'flex-end',
-              }}
+  return (
+    <div
+      ref={ref}
+      style={{
+        display: 'flex',
+        alignItems: 'flex-end',
+        width: '100%',
+        height: '100%',
+      }}
+    >
+      {
+        width > 0 && height > 0 && (<>
+          <List
+            id='left-table'
+            width={30}
+            height={height - 30}
+            rowSizeAndPositionManager={rowSizeAndPositionManager}
+            scrollTop={scrollTop}
+            cellRenderer={cellRenderer}
+            overscanCount={15}
+            onScroll={onVerticalScroll}
+          />
+          <div>
+            <HorizontalList
+              id='top-table'
+              height={30}
+              width={width - 30}
+              columnSizeAndPositionManager={columnSizeAndPositionManager}
+              cellRenderer={cellRenderer}
+              overscanCount={15}
+              scrollLeft={scrollLeft}
+              onScroll={onHorizontalScroll}
+            />
+            <SelectedCellContext.Provider
+              value={selectedCell}
             >
-              <List
-                id='left-table'
-                width={30}
+              <Grid
+                id='main-table'
+                width={width - 30}
                 height={height - 30}
                 rowSizeAndPositionManager={rowSizeAndPositionManager}
-                scrollTop={scrollTop}
-                cellRenderer={this.listCellRenderer}
+                columnSizeAndPositionManager={columnSizeAndPositionManager}
                 overscanCount={15}
-                onScroll={this.onScroll}
-                WrapperComponent={CustomGridWrapper}
-                verticalOffsetAdjustment={verticalOffsetAdjustment}
+                cellRenderer={cellRenderer}
+                scrollToRow={selectedCell?.rowIndex}
+                scrollToColumn={selectedCell?.columnIndex}
+                scrollLeft={scrollLeft}
+                scrollTop={scrollTop}
+                onScroll={onScroll}
               />
-              <div>
-                <HorizontalList
-                  id='top-table'
-                  height={30}
-                  width={width - 30}
-                  columnSizeAndPositionManager={columnSizeAndPositionManager}
-                  cellRenderer={this.horizontalCellRenderer}
-                  overscanCount={15}
-                  scrollLeft={scrollLeft}
-                  onScroll={this.onScroll}
-                  WrapperComponent={CustomGridWrapper}
-                  horizontalOffsetAdjustment={horizontalOffsetAdjustment}
-                />
-                <SelectedCellContext.Provider
-                  value={{
-                    selectedCell: this.state.selectedCell,
-                  }}
-                >
-                  <Grid
-                    id='main-table'
-                    width={width - 30}
-                    height={height - 30}
-                    rowSizeAndPositionManager={rowSizeAndPositionManager}
-                    columnSizeAndPositionManager={columnSizeAndPositionManager}
-                    overscanCount={15}
-                    cellRenderer={this.cellRenderer}
-                    rangeRenderer={this.rangeRenderer}
-                    enableBackgroundLines={true}
-                    backgroundLinesColor='#ccc'
-                    scrollToRow={rowIndex}
-                    scrollToColumn={columnIndex}
-                    scrollLeft={scrollLeft}
-                    scrollTop={scrollTop}
-                    onScroll={this.onScroll}
-                    onOffsetAdjustmentChange={this.onOffsetAdjustmentChange}
-                  />
-                </SelectedCellContext.Provider>
-              </div>
-            </div>
-          )
-        }
-      </AutoSizer>
-    )
-  }
+            </SelectedCellContext.Provider>
+          </div>
+        </>)
+      }
+    </div>
+  )
 }
 
-ReactDOM.render(
-  <TestComponent />,
-  document.getElementById("app")
-);
+const container = document.getElementById('app');
+const root = createRoot(container);
+root.render(<TestComponent />);

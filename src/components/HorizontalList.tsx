@@ -1,23 +1,19 @@
 import * as React from 'react'
 
-import Grid from './Grid'
+import Grid, { GridProps } from './Grid'
 
-import IHorizontalListProps from "../interfaces/IHorizontalListProps"
-import OnScrollType from '../types/OnScrollType'
+type HorizontalListProps = Omit<
+  GridProps,
+  'rowSizeAndPositionManager' | 'rowCount' | 'rowHeight' | 'verticalScrollSynchronizationId'
+>
 
-export default class HorizontalList extends React.PureComponent<IHorizontalListProps> {
-  onScroll: OnScrollType = ({ scrollLeft }) => this.props.onScroll({ scrollLeft })
+const HorizontalList: React.FC<HorizontalListProps> = (props) => (
+  <Grid
+    {...props}
+    rowCount={1}
+    rowHeight={props.height}
+    overscanRowCount={0}
+  />
+)
 
-  render() {
-    return (
-      <Grid
-        {...this.props}
-        onScroll={this.props.onScroll && this.onScroll}
-        enableBackgroundHorizontalLines={false}
-        rowCount={1}
-        rowHeight={this.props.height}
-        overscanRowCount={0}
-      />
-    )
-  }
-}
+export default React.memo(HorizontalList);

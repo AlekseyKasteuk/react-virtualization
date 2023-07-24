@@ -1,7 +1,6 @@
 {
   "setupFiles": [
-    "<rootDir>/test-shim.js",
-    "<rootDir>/test-setup.js"
+    "<rootDir>/test-shim.js"
   ],
   "transform": {
     "^.+\\.(t|j)sx?$": "ts-jest"

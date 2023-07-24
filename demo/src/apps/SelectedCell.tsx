@@ -29,8 +29,8 @@ class SelectedCell extends React.PureComponent<ISelectedCellProps> {
         ref={this.ref}
         style={{
           position: 'absolute',
-          top: rowSizeAndPositionManager.getPixelByIndex(rowIndex),
-          left: columnSizeAndPositionManager.getPixelByIndex(columnIndex),
+          top: rowSizeAndPositionManager.getOffset(rowIndex),
+          left: columnSizeAndPositionManager.getOffset(columnIndex),
           width: columnSizeAndPositionManager.getSize(columnIndex) + 1,
           height: rowSizeAndPositionManager.getSize(rowIndex) + 1,
           border: '1px solid red',

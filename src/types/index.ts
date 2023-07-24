@@ -1,6 +1,5 @@
 export { default as CellRendererType } from './CellRendererType'
 export { default as OnScrollType } from './OnScrollType'
-export { default as RangeRendererType } from './CellRangeRendererType'
-export { default as RangeType } from './RangeType'
+export { default as RangeRendererType } from './RangeRendererType'
 export { default as SizeByIndexFuncType } from './SizeByIndexFuncType'
 export { default as SizeType } from './SizeType'

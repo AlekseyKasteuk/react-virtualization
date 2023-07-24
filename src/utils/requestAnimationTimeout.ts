@@ -1,14 +1,14 @@
-import { caf, raf } from './animationFrame';
+import { cancelAnimationFrame, requestAnimationFrame } from './animationFrame';
 
 export type AnimationTimeoutId = {
-  id: number,
-}
+  id: number;
+};
 
 export const cancelAnimationTimeout = (frame: AnimationTimeoutId) => {
-  caf(frame.id)
+  cancelAnimationFrame(frame.id)
 }
 
-export const requestAnimationTimeout = (callback: Function, delay: number): AnimationTimeoutId => {
+export const requestAnimationTimeout = (callback: () => void, delay: number): AnimationTimeoutId => {
   const start = Date.now()
 
   const timeout = () => {
@@ -16,12 +16,12 @@ export const requestAnimationTimeout = (callback: Function, delay: number): Anim
     if (now - start >= delay) {
       callback()
     } else {
-      frame.id = raf(timeout)
+      frame.id = requestAnimationFrame(timeout)
     }
   }
 
   const frame: AnimationTimeoutId = {
-    id: raf(timeout),
+    id: requestAnimationFrame(timeout),
   }
 
   return frame

@@ -1,12 +1,14 @@
-import RendererParamsType from './RendererParamsType'
+import { SizeAndPositionManager } from '../managers';
 
-interface CellRendererParamsType extends RendererParamsType {
+type CellRendererParamsType = {
   key: string;
   rowIndex: number;
+  rowSizeAndPositionManager: SizeAndPositionManager;
   columnIndex: number;
+  columnSizeAndPositionManager: SizeAndPositionManager;
   style: React.CSSProperties;
 }
 
-type CellRendererType = (props: CellRendererParamsType) => React.ReactNode
+type CellRendererType = (props: CellRendererParamsType) => React.ReactNode;
 
-export default CellRendererType
+export default CellRendererType;

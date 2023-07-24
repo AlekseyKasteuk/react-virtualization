@@ -1,6 +1,5 @@
-type Callback = (timestamp: number) => void
-type CancelAnimationFrame = (requestId: number) => void
-type RequestAnimationFrame = (callback: Callback) => number
+type CancelAnimationFrame = (id: number) => void
+type RequestAnimationFrame = (callback: () => void) => number
 
 let win
 if (typeof window !== 'undefined') {
@@ -11,38 +10,17 @@ if (typeof window !== 'undefined') {
   win = {}
 }
 
-const getRAF = (): RequestAnimationFrame => {
-  const raf =
-    win.requestAnimationFrame ||
-    win.webkitRequestAnimationFrame ||
-    win.mozRequestAnimationFrame ||
-    win.oRequestAnimationFrame ||
-    win.msRequestAnimationFrame
+let requestAnimationFrame: RequestAnimationFrame;
+let cancelAnimationFrame: CancelAnimationFrame;
 
-  if (raf) {
-    return raf.bind(win)
-  }
-  return function (callback: Callback): number {
-    return win.setTimeout(callback, 1000 / 60)
-  }
+if (win.requestAnimationFrame && win.cancelAnimationFrame) {
+  requestAnimationFrame = win.requestAnimationFrame;
+  cancelAnimationFrame = win.cancelAnimationFrame
+} else if (win.setTimeout) {
+  requestAnimationFrame = (callback) => win.setTimeout(callback, 1000 / 60);
+  cancelAnimationFrame = win.clearTimeout
+} else {
+  throw new Error('Unable to create request animation functions');
 }
 
-const getCAF = (): CancelAnimationFrame => {
-  const caf =
-    win.cancelAnimationFrame ||
-    win.webkitCancelAnimationFrame ||
-    win.mozCancelAnimationFrame ||
-    win.oCancelAnimationFrame ||
-    win.msCancelAnimationFrame
-  
-  if (caf) {
-    return caf.bind(win)
-  }
-
-  return function (id: number): void {
-    win.clearTimeout(id)
-  }
-}
-
-export const raf: RequestAnimationFrame = getRAF()
-export const caf: CancelAnimationFrame = getCAF()
+export { requestAnimationFrame, cancelAnimationFrame }
