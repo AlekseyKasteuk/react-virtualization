@@ -21,6 +21,18 @@ type RangeRendererParams = {
   isScrolling: boolean;
 
   cellRenderer?: CellRendererType;
+
+  verticalCache: Map<any, any>;
+  verticalStylesCache: Map<any, React.CSSProperties>;
+  verticalComponentCache: Map<any, React.ReactNode>;
+  
+  horizontalCache: Map<any, any>;
+  horizontalStylesCache: Map<any, React.CSSProperties>;
+  horizontalComponentCache: Map<any, React.ReactNode>;
+
+  cache: Map<any, any>;
+  stylesCache: Map<any, React.CSSProperties>;
+  componentCache: Map<any, React.ReactNode>;
 };
 
 type RangeRendererType = (params: RangeRendererParams) => React.ReactNode;

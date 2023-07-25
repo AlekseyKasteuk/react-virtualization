@@ -1,6 +1,6 @@
 import { SizeAndPositionManager } from '../managers';
 
-type CellRendererParamsType = {
+export type CellRendererParamsType = {
   key: string;
   rowIndex: number;
   rowSizeAndPositionManager: SizeAndPositionManager;
@@ -9,6 +9,6 @@ type CellRendererParamsType = {
   style: React.CSSProperties;
 }
 
-type CellRendererType = (props: CellRendererParamsType) => React.ReactNode;
+export type CellRendererType = (props: CellRendererParamsType) => React.ReactNode;
 
 export default CellRendererType;

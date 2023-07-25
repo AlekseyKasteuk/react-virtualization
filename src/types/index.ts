@@ -1,4 +1,4 @@
-export { default as CellRendererType } from './CellRendererType'
+export * from './CellRendererType'
 export { default as OnScrollType } from './OnScrollType'
 export { default as RangeRendererType } from './RangeRendererType'
 export { default as SizeByIndexFuncType } from './SizeByIndexFuncType'

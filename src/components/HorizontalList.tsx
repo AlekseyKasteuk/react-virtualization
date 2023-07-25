@@ -4,7 +4,7 @@ import Grid, { GridProps } from './Grid'
 
 type HorizontalListProps = Omit<
   GridProps,
-  'rowSizeAndPositionManager' | 'rowCount' | 'rowHeight' | 'verticalScrollSynchronizationId'
+  'rowSizeAndPositionManager' | 'rowCount' | 'rowHeight' | 'verticalScrollGroupId'
 >
 
 const HorizontalList: React.FC<HorizontalListProps> = (props) => (

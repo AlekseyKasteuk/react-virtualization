@@ -23,6 +23,7 @@ class SelectedCell extends React.PureComponent<ISelectedCellProps> {
   }
 
   render() {
+    console.log(this.props)
     const { selectedCell: { rowIndex, columnIndex }, rowSizeAndPositionManager, columnSizeAndPositionManager } = this.props
     return (
       <div
@@ -31,8 +32,8 @@ class SelectedCell extends React.PureComponent<ISelectedCellProps> {
           position: 'absolute',
           top: rowSizeAndPositionManager.getOffset(rowIndex),
           left: columnSizeAndPositionManager.getOffset(columnIndex),
-          width: columnSizeAndPositionManager.getSize(columnIndex) + 1,
-          height: rowSizeAndPositionManager.getSize(rowIndex) + 1,
+          width: columnSizeAndPositionManager.getSize(columnIndex),
+          height: rowSizeAndPositionManager.getSize(rowIndex),
           border: '1px solid red',
           outline: 'none',
           boxSizing: 'border-box',
@@ -46,7 +47,7 @@ class SelectedCell extends React.PureComponent<ISelectedCellProps> {
 export default (props: any) => (
   <SelectedCellContext.Consumer>
       {
-        ({ selectedCell }) => selectedCell && (<SelectedCell {...props} selectedCell={selectedCell} />)
+        (selectedCell) => selectedCell && (<SelectedCell {...props} selectedCell={selectedCell} />)
       }
     </SelectedCellContext.Consumer>
 )

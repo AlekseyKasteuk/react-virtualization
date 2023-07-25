@@ -2,10 +2,11 @@ import { cancelAnimationFrame, requestAnimationFrame } from './animationFrame';
 
 export type AnimationTimeoutId = {
   id: number;
-};
+} | null;
 
-export const cancelAnimationTimeout = (frame: AnimationTimeoutId) => {
-  cancelAnimationFrame(frame.id)
+export const cancelAnimationTimeout = (frame: AnimationTimeoutId): null => {
+  if (frame) cancelAnimationFrame(frame.id)
+  return null
 }
 
 export const requestAnimationTimeout = (callback: () => void, delay: number): AnimationTimeoutId => {

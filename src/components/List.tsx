@@ -4,7 +4,7 @@ import Grid, { GridProps } from './Grid'
 
 type ListProps = Omit<
   GridProps,
-  'columnSizeAndPositionManager' | 'columnCount' | 'columnWidth' | 'horizontalScrollSynchronizationId'
+  'columnSizeAndPositionManager' | 'columnCount' | 'columnWidth' | 'horizontalScrollGroupId'
 >
 
 const List: React.FC<ListProps> = (props) => (

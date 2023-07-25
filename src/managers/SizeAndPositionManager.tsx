@@ -1,31 +1,34 @@
-import SizeAndPositionCache from '../utils/SizeAndPositionCache'
-
 import SizeType from "../types/SizeType"
 import SizeByIndexFunc from '../types/SizeByIndexFuncType';
+import binarySearch, { SEARCH_TYPE } from "../utils/binarySearch";
+
+type OffsetCacheItem = [number, number];
+
+const metricsCreator = (offset: number) => ([start, end]: OffsetCacheItem): number => offset >= start ? offset < end ? 0 : 1 : -1;
 
 export default class SizeAndPositionManager {
-  private indexToOffsetMap = new Map<number, number>();
-  private offsetToIndexCache: SizeAndPositionCache = new SizeAndPositionCache();
   private _count: number;
   private isStaticSize: boolean;
+  private isFinite: boolean = true;
   private size: number;
   private sizeGetter: SizeByIndexFunc;
   private totalSize: number;
+  private offsetToIndexCache: OffsetCacheItem[] = [];
 
   constructor (count: number, size: SizeType) {
     if (count < 0) {
       throw new Error('"count" param must me >= 0');
     }
     this._count = count;
-    if (typeof size === 'number') {
-      this.isStaticSize = true;
-      this.size = size;
-    } else {
-      this.isStaticSize = false;
-      this.sizeGetter = size;
-    }
-    if (!isFinite(count)) {
-      this.totalSize = Infinity;
+
+    const isStaticSize = typeof size === 'number'
+    this.isStaticSize = isStaticSize
+    if (isStaticSize) this.size = size;
+    else this.sizeGetter = size;
+
+    if (!Number.isFinite(count)) {
+      this.isFinite = false
+      this.totalSize = Infinity
     }
   }
 
@@ -34,18 +37,20 @@ export default class SizeAndPositionManager {
   }
 
   getTotalSize () {
-    if (this.totalSize === undefined) {
-      this.totalSize = this.getRangeSize(0, this._count - 1);
-    }
-    return this.totalSize;
+    const { count } = this
+    return this.totalSize ??= this.getRangeSize(0, count - 1);
+  }
+
+  getFixedOffset (potentialOffset: number) {
+    return this.getEndOffset(this.getIndex(potentialOffset))
   }
 
   getSize (index: number): number {
-    if (this._count === 0) {
+    if (this.count === 0) {
       return 0
     }
-    if (index >= this._count) {
-      return this.getSize(this._count - 1)
+    if (index >= this.count) {
+      return this.getSize(this.count - 1)
     }
     if (index < 0) {
       return this.getSize(0)
@@ -53,63 +58,46 @@ export default class SizeAndPositionManager {
     return this.isStaticSize ? this.size : this.sizeGetter(index)
   }
 
-  _setCache (index: number, offset: number) {
-    this.indexToOffsetMap.set(index, offset);
-    this.offsetToIndexCache.push(offset, offset + this.getSize(index));
+  private pushOffsetToCache (): OffsetCacheItem {
+    const { offsetToIndexCache } = this
+    const index = offsetToIndexCache.length
+    const offset: number = index === 0 ? 0 : offsetToIndexCache[index - 1][1]
+    const size = this.getSize(index)
+    const result: OffsetCacheItem = [offset, offset + size]
+    this.offsetToIndexCache.push(result);
+    return result
   }
 
   getOffset (index: number): number {
-    if (this._count === 0) {
-      return 0
-    }
-    if (index >= this._count) {
-      return this.getOffset(this._count - 1);
-    }
-    if (index < 0) {
-      return this.getOffset(0);
-    }
-    if (this.isStaticSize) {
-      return index * this.size
-    }
-    if (!this.indexToOffsetMap.has(index)) {
-      const offset = index === 0 ? 0 : this.getEndOffset(index - 1);
-      this._setCache(index, offset)
-      return offset;
-    }
-    return this.indexToOffsetMap.get(index) as number;
+    if (this.count === 0 || index <= 0) return 0
+    if (!this.isFinite && index === Infinity) return Infinity
+    if (index >= this.count) return this.getOffset(this.count - 1);
+    if (this.isStaticSize) return index * this.size
+    const { offsetToIndexCache } = this
+    for (let i = offsetToIndexCache.length; i <= index; i++) this.pushOffsetToCache()
+    return offsetToIndexCache[index][0]
   }
 
   getEndOffset (index: number): number {
     return this.getOffset(index) + this.getSize(index);
   }
 
-  private getCachedIndex (offset: number): number {
-    const { _count: count, offsetToIndexCache } = this;
-    if (offset >= offsetToIndexCache.lastOffset) {
-      if (offsetToIndexCache.lastIndex === count - 1) {
-        return offsetToIndexCache.lastIndex
-      }
-      const index = offsetToIndexCache.lastIndex + 1
-      if (offset >= this.getOffset(index) + this.getSize(index)) {
-        return this.getCachedIndex(offset)
-      }
-      return index
-    }
-    return offsetToIndexCache.get(offset);
-  }
-
   getIndex (offset: number): number {
-    const { isStaticSize, size, _count: count } = this;
-    if (count === 0) {
-      return -1
+    const { isStaticSize, size, count } = this;
+    if (count === 0) return -1;
+    if (offset <= 0) return 0;
+    if (isStaticSize) return Math.min(Math.floor(offset / size), count - 1);
+    const { offsetToIndexCache } = this;
+    let index = offsetToIndexCache.length
+    let lastOffset = index === 0 ? 0 : offsetToIndexCache[index - 1][1]
+    while (lastOffset <= offset) {
+      if (index === count) return count - 1
+      const [startOffset, endOffset] = this.pushOffsetToCache()
+      if (startOffset < offset) return index
+      index++
+      lastOffset = endOffset
     }
-    if (offset < 0) {
-      return this.getIndex(0);
-    }
-    if (isStaticSize) {
-      return Math.min(Math.floor(offset / size), count - 1);
-    }
-    return this.getCachedIndex(offset);
+    return binarySearch(offsetToIndexCache, metricsCreator(offset), SEARCH_TYPE.last);
   }
 
   getData (index: number) {

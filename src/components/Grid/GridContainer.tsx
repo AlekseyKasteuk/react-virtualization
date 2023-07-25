@@ -2,40 +2,9 @@ import * as React from 'react'
 import { useExtraSize } from '../../hooks/useExtraSize';
 
 import { OnScrollType } from '../../types';
+import { AnimationTimeoutId, cancelAnimationTimeout, requestAnimationTimeout } from '../../utils/requestAnimationTimeout';
 
-type ScrollHandlerConfig = {
-  id: number;
-  handler: OnScrollType;
-}
-
-const SCROLL_MEDIATOR = new Map<Symbol, ScrollHandlerConfig[]>();
-
-const getAllScrollMediatorHandlers = (id: number, ...scrollIds: Array<Symbol | undefined>) => {
-  const uniqScrollIds = Array.from(new Set(scrollIds)).filter(id => id !== undefined)
-  return uniqScrollIds.flatMap(scrollId => (SCROLL_MEDIATOR.get(scrollId) || []).filter(c => c.id !== id)).map(c => c.handler);
-}
-
-const addToMediator = (scrollId: Symbol, id: number, handler: OnScrollType) => {
-
-  if (!SCROLL_MEDIATOR.has(scrollId)) {
-    SCROLL_MEDIATOR.set(scrollId, []);
-  }
-  const scrollHandler: ScrollHandlerConfig = { id, handler };
-  SCROLL_MEDIATOR.get(scrollId).push(scrollHandler);
-  return () => {
-    const newHandlersList = SCROLL_MEDIATOR.get(scrollId).filter(h => h !== scrollHandler);
-    if (newHandlersList.length === 0) {
-      SCROLL_MEDIATOR.delete(scrollId);
-    } else {
-      SCROLL_MEDIATOR.set(scrollId, newHandlersList)
-    }
-  }
-}
-
-const generateId = (() => {
-  let id = 0;
-  return () => id++;
-})()
+type ScrollGroupId = string | Symbol;
 
 export type GridContainerProps =
   Omit<React.HTMLProps<HTMLDivElement>, 'onScroll'> &
@@ -47,55 +16,106 @@ export type GridContainerProps =
     scrollTop: number;
     scrollLeft: number;
     onScroll: OnScrollType;
+    onScrollStart: () => void;
+    onScrollEnd: () => void;
     hideScrollbars?: boolean;
     containerRef: React.MutableRefObject<HTMLDivElement | null>;
-    verticalScrollSynchronizationId?: Symbol;
-    horizontalScrollSynchronizationId?: Symbol;
+    verticalScrollGroupId?: ScrollGroupId;
+    horizontalScrollGroupId?: ScrollGroupId;
     children?: React.ReactNode;
   }
 ;
+
+type ScrollRef = GridContainerProps['containerRef']
+type ScrollHandler = (scrollPosition: number) => void
+type ScrollGroupData = Map<ScrollRef, ScrollHandler>
+type ScrollMap = Map<ScrollGroupId, ScrollGroupData>
+const HORIZONTAL_SCROLL_GROUPS: ScrollMap = new Map()
+const VERTICAL_SCROLL_GROUPS: ScrollMap = new Map()
+
+const registerScroller = (isHorizontal: boolean, groupId: ScrollGroupId, ref: ScrollRef, handler: ScrollHandler) => {
+  const groupsMap = isHorizontal ? HORIZONTAL_SCROLL_GROUPS : VERTICAL_SCROLL_GROUPS
+  if (!groupsMap.has(groupId)) groupsMap.set(groupId, new Map())
+  const handlersMap = groupsMap.get(groupId)
+  if (handlersMap.size > 0) {
+    const ref = groupsMap.get(groupId).keys().next().value;
+    const scrollPosition: number = isHorizontal ? ref.scrollLeft : ref.scrollTop;
+    handler(scrollPosition)
+  }
+  handlersMap.set(ref, handler)
+}
+
+const unregisterScroller = (isHorizontal: boolean, groupId: ScrollGroupId, ref: ScrollRef) => {
+  const groupsMap = isHorizontal ? HORIZONTAL_SCROLL_GROUPS : VERTICAL_SCROLL_GROUPS
+  if (!groupsMap.has(groupId)) return
+  const handlersMap = groupsMap.get(groupId)
+  if (!handlersMap.has(ref)) return
+  handlersMap.delete(ref)
+  if (handlersMap.size === 0) groupsMap.delete(groupId)
+}
+
+const scroll = (isHorizontal: boolean, groupId: ScrollGroupId, scrollerRef: ScrollRef, scrollPosition: number) => {
+  const groupsMap = isHorizontal ? HORIZONTAL_SCROLL_GROUPS : VERTICAL_SCROLL_GROUPS
+  if (!groupsMap.has(groupId)) return
+  const handlersMap = groupsMap.get(groupId)
+  if (!handlersMap.has(scrollerRef)) return
+  for (const [ref, handler] of handlersMap.entries()) if (ref !== scrollerRef) handler(scrollPosition)
+}
 
 const GridContainer: React.FC<GridContainerProps> = (props) => {
   const {
     width, height,
     contentHeight, contentWidth,
-    scrollLeft, scrollTop, onScroll,
+    scrollLeft, scrollTop, onScroll, onScrollStart, onScrollEnd,
     children,
     hideScrollbars,
     containerRef,
-    verticalScrollSynchronizationId,
-    horizontalScrollSynchronizationId,
+    verticalScrollGroupId,
+    horizontalScrollGroupId,
     ...rest
   } = props;
 
   const extraSizes = useExtraSize(containerRef, [width, height, contentHeight, contentWidth]);
 
-  const id = React.useMemo(generateId, [])
+  React.useEffect(() => {
+    if (verticalScrollGroupId === undefined) return () => {}
+    const handler = (scrollTop: number) => {
+      const container = containerRef.current
+      const currentScrollTop = container.scrollTop
+      if (scrollTop === currentScrollTop) return
+      isUserAction.current = false
+      container.scrollTop = scrollTop;
+    }
+    registerScroller(false, verticalScrollGroupId, containerRef, handler)
+    return () => unregisterScroller(false, verticalScrollGroupId, containerRef)
+  }, [verticalScrollGroupId, containerRef])
 
   React.useEffect(() => {
-    if (containerRef.current === null) {
-      return
+    if (horizontalScrollGroupId === undefined) return () => {}
+    const handler = (scrollLeft: number) => {
+      const container = containerRef.current
+      const currentScrollLeft = container.scrollLeft
+      if (scrollLeft === currentScrollLeft) return
+      isUserAction.current = false
+      container.scrollLeft = scrollLeft;
     }
+    registerScroller(true, horizontalScrollGroupId, containerRef, handler)
+    return () => unregisterScroller(true, horizontalScrollGroupId, containerRef)
+  }, [horizontalScrollGroupId, containerRef])
+
+  const isUserAction = React.useRef(true)
+  const isScrolling = React.useRef(false)
+  const frame = React.useRef<AnimationTimeoutId>(null)
+
+  React.useLayoutEffect(() => {
     const container = containerRef.current;
     if (container.scrollLeft !== scrollLeft || container.scrollTop !== scrollTop) {
+      isUserAction.current = false
       container.scrollTo(scrollLeft, scrollTop);
     }
   }, [scrollLeft, scrollTop]);
 
-  React.useEffect(() => {
-    if (verticalScrollSynchronizationId) {
-      const handler = ({ scrollTop }) => (containerRef.current.scrollTop = scrollTop)
-      return addToMediator(verticalScrollSynchronizationId, id, handler)
-    }
-    return undefined;
-  }, [verticalScrollSynchronizationId])
-  React.useEffect(() => {
-    if (horizontalScrollSynchronizationId) {
-      const handler = ({ scrollLeft }) => (containerRef.current.scrollLeft = scrollLeft)
-      return addToMediator(horizontalScrollSynchronizationId, id, handler)
-    }
-    return undefined;
-  }, [horizontalScrollSynchronizationId])
+  React.useEffect(() => () => cancelAnimationTimeout(frame.current), [])
 
   const verticalOffset = hideScrollbars ? extraSizes.height : 0;
   const horizontalOffset = hideScrollbars ? extraSizes.width : 0;
@@ -113,12 +133,31 @@ const GridContainer: React.FC<GridContainerProps> = (props) => {
         WebkitOverflowScrolling: 'touch',
       }}
       onScroll={(event: React.UIEvent) => {
-        if (event.target === containerRef.current) {
-          const { scrollTop, scrollLeft } = event.currentTarget
-          const params = { scrollTop, scrollLeft, event }
-          getAllScrollMediatorHandlers(id, verticalScrollSynchronizationId, horizontalScrollSynchronizationId).forEach(handler => handler(params))
-          onScroll(params)
+        if (event.currentTarget !== containerRef.current) return;
+        if (!isScrolling.current) {
+          isScrolling.current = true
+          onScrollStart()
         }
+        const { scrollTop, scrollLeft } = event.currentTarget
+        const isHorizontalScroll = props.scrollLeft !== scrollLeft
+        const isVerticalScroll = props.scrollTop !== scrollTop
+        if (isHorizontalScroll || isVerticalScroll) {
+          onScroll({ scrollTop, scrollLeft, event, isUserAction: isUserAction.current })
+        }
+        if (isVerticalScroll && verticalScrollGroupId !== undefined)
+          scroll(false, verticalScrollGroupId, containerRef, scrollTop)
+        if (isHorizontalScroll && horizontalScrollGroupId !== undefined)
+          scroll(true, horizontalScrollGroupId, containerRef, scrollLeft)
+        
+        cancelAnimationTimeout(frame.current)
+        frame.current = requestAnimationTimeout(
+          () => {
+            onScrollEnd()
+            isUserAction.current = true
+            isScrolling.current = false
+          },
+          16
+        );
       }}
     >
       <div

@@ -25,11 +25,11 @@ const useSizeAndPositionManager = (
   [count, size, manager]
 );
 
-const GridWithManagers = React.forwardRef<Grid, GridWithManagersProps>(({
+const GridWithManagers: React.FC<GridWithManagersProps> = (({
   rowCount = 0, rowHeight = 0, rowSizeAndPositionManager,
   columnCount = 0, columnWidth = 0, columnSizeAndPositionManager,
   ...props
-}, ref) => {
+}) => {
   const rowManager = useSizeAndPositionManager(rowCount, rowHeight, rowSizeAndPositionManager);
   const columnManager = useSizeAndPositionManager(columnCount, columnWidth, columnSizeAndPositionManager);
   return (
@@ -37,7 +37,6 @@ const GridWithManagers = React.forwardRef<Grid, GridWithManagersProps>(({
       {...props}
       rowSizeAndPositionManager={rowManager}
       columnSizeAndPositionManager={columnManager}
-      ref={ref}
     />
   )
 })
